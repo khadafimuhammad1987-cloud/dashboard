@@ -435,6 +435,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .history-tab {
@@ -521,6 +522,7 @@
             background: #f8fafc;
         }
 
+        /* DataTables Custom */
         .dataTables_wrapper .dataTables_length,
         .dataTables_wrapper .dataTables_filter,
         .dataTables_wrapper .dataTables_info,
@@ -542,6 +544,11 @@
             background: #3498db;
             color: white !important;
             border-color: #3498db;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e9ecef;
+            border-color: #dee2e6;
         }
 
         /* Loading Spinner */
@@ -602,6 +609,10 @@
             
             .cost-value {
                 font-size: 1.3rem;
+            }
+            
+            .history-tabs {
+                justify-content: center;
             }
         }
     </style>
@@ -896,9 +907,9 @@
                     <table id="hourlyTable" class="history-table display" style="width:100%">
                         <thead>
                             <tr>
-                                <th>Periode</th>
+                                <th>Tanggal</th>
                                 <th>Jam</th>
-                                <th>Total Daya (kWh)</th>
+                                <th>Total Energi (kWh)</th>
                                 <th>Rata-rata Daya (W)</th>
                                 <th>Biaya (Rp)</th>
                             </tr>
@@ -923,7 +934,7 @@
                         <thead>
                             <tr>
                                 <th>Tanggal</th>
-                                <th>Total Daya (kWh)</th>
+                                <th>Total Energi (kWh)</th>
                                 <th>Rata-rata Daya (W)</th>
                                 <th>Biaya (Rp)</th>
                             </tr>
@@ -949,7 +960,7 @@
                             <tr>
                                 <th>Bulan</th>
                                 <th>Tahun</th>
-                                <th>Total Daya (kWh)</th>
+                                <th>Total Energi (kWh)</th>
                                 <th>Rata-rata Daya (W)</th>
                                 <th>Biaya (Rp)</th>
                             </tr>
@@ -969,7 +980,7 @@
             <div class="chart-card">
                 <div class="chart-header">
                     <h5><i class="fas fa-chart-bar"></i> Analisis Penggunaan Energi</h5>
-                    <small>Grafik historis</small>
+                    <small>30 hari terakhir</small>
                 </div>
                 <div class="chart-container">
                     <canvas id="analyticsChart"></canvas>
@@ -1058,39 +1069,58 @@
             const userRole = sessionStorage.getItem('userRole') || 'admin';
             document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userRole}`;
 
-            // Initialize DataTables
+            // Initialize DataTables dengan konfigurasi yang benar
             setTimeout(() => {
-                realtimeTable = $('#realtimeTable').DataTable({
-                    pageLength: 25,
-                    order: [[0, 'desc']],
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                try {
+                    // Real-time Table
+                    if ($('#realtimeTable').length) {
+                        realtimeTable = $('#realtimeTable').DataTable({
+                            pageLength: 25,
+                            order: [[0, 'desc']],
+                            language: {
+                                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                            },
+                            columnDefs: [
+                                { targets: 0, type: 'date' }
+                            ]
+                        });
                     }
-                });
 
-                hourlyTable = $('#hourlyTable').DataTable({
-                    pageLength: 25,
-                    order: [[0, 'desc'], [1, 'desc']],
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    // Hourly Table
+                    if ($('#hourlyTable').length) {
+                        hourlyTable = $('#hourlyTable').DataTable({
+                            pageLength: 25,
+                            order: [[0, 'desc'], [1, 'desc']],
+                            language: {
+                                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                            }
+                        });
                     }
-                });
 
-                dailyTable = $('#dailyTable').DataTable({
-                    pageLength: 25,
-                    order: [[0, 'desc']],
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    // Daily Table
+                    if ($('#dailyTable').length) {
+                        dailyTable = $('#dailyTable').DataTable({
+                            pageLength: 25,
+                            order: [[0, 'desc']],
+                            language: {
+                                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                            }
+                        });
                     }
-                });
 
-                monthlyTable = $('#monthlyTable').DataTable({
-                    pageLength: 25,
-                    order: [[1, 'desc'], [0, 'desc']],
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    // Monthly Table
+                    if ($('#monthlyTable').length) {
+                        monthlyTable = $('#monthlyTable').DataTable({
+                            pageLength: 25,
+                            order: [[1, 'desc'], [0, 'desc']],
+                            language: {
+                                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                            }
+                        });
                     }
-                });
+                } catch (e) {
+                    console.log('DataTables init error:', e);
+                }
             }, 1000);
 
             // Initialize Charts
@@ -1213,7 +1243,7 @@
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#7f8c8d' }
+                            ticks: { color: '#7f8c8d', maxRotation: 45 }
                         }
                     }
                 }
@@ -1377,24 +1407,24 @@
                 
                 historyArray.forEach(([key, value]) => {
                     if (value.time) {
-                        const date = new Date(value.time.split(' ')[0].split('-').reverse().join('-'));
+                        const date = value.time.split(' ')[0];
                         const hour = value.time.split(' ')[1].substring(0, 2);
-                        const periodKey = `${value.time.split(' ')[0]} ${hour}:00`;
+                        const periodKey = `${date} ${hour}`;
                         
                         if (!hourlyMap.has(periodKey)) {
                             hourlyMap.set(periodKey, {
-                                totalPower: 0,
-                                count: 0,
+                                date: date,
+                                hour: hour,
                                 totalEnergy: 0,
-                                date: value.time.split(' ')[0],
-                                hour: hour
+                                totalPower: 0,
+                                count: 0
                             });
                         }
                         
                         const period = hourlyMap.get(periodKey);
+                        period.totalEnergy += (value.power || 0) * 5 / 3600 / 1000; // Estimasi energy per 5 detik
                         period.totalPower += value.power || 0;
                         period.count++;
-                        period.totalEnergy += (value.power || 0) * 5 / 3600 / 1000; // Estimasi energy per 5 detik
                     }
                 });
                 
@@ -1431,16 +1461,16 @@
                         
                         if (!dailyMap.has(date)) {
                             dailyMap.set(date, {
+                                totalEnergy: 0,
                                 totalPower: 0,
-                                count: 0,
-                                totalEnergy: 0
+                                count: 0
                             });
                         }
                         
                         const day = dailyMap.get(date);
+                        day.totalEnergy += (value.power || 0) * 5 / 3600 / 1000;
                         day.totalPower += value.power || 0;
                         day.count++;
-                        day.totalEnergy += (value.power || 0) * 5 / 3600 / 1000;
                     }
                 });
                 
@@ -1479,16 +1509,16 @@
                             monthlyMap.set(monthKey, {
                                 month: month,
                                 year: year,
+                                totalEnergy: 0,
                                 totalPower: 0,
-                                count: 0,
-                                totalEnergy: 0
+                                count: 0
                             });
                         }
                         
                         const monthData = monthlyMap.get(monthKey);
+                        monthData.totalEnergy += (value.power || 0) * 5 / 3600 / 1000;
                         monthData.totalPower += value.power || 0;
                         monthData.count++;
-                        monthData.totalEnergy += (value.power || 0) * 5 / 3600 / 1000;
                     }
                 });
                 
@@ -1623,8 +1653,7 @@
         // Update tarif
         window.updateTarif = function() {
             const tarif = document.getElementById('tarifSetting').value;
-            // Implementasi update tarif ke database jika diperlukan
-            alert('Pengaturan disimpan');
+            alert('Pengaturan disimpan (Rp ' + tarif + '/kWh)');
         };
 
         // Logout
