@@ -125,12 +125,6 @@
             padding: 25px;
         }
 
-        /* Control Panel */
-        .control-panel {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
         .status-badge {
             font-size: 1.2rem;
             padding: 12px 30px;
@@ -162,7 +156,6 @@
             color: white;
         }
 
-        /* Metric Cards */
         .metric-card {
             padding: 25px;
             border-radius: 15px;
@@ -194,7 +187,6 @@
         .bg-gradient-warning { background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%); }
         .bg-gradient-info { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
 
-        /* Cost Cards */
         .cost-card {
             padding: 20px;
             border-radius: 12px;
@@ -225,14 +217,12 @@
         .text-info { color: #17a2b8 !important; }
         .text-danger { color: #dc3545 !important; }
 
-        /* Chart Container */
         .chart-container {
             position: relative;
             height: 300px;
             width: 100%;
         }
 
-        /* History Table */
         .history-table {
             font-size: 0.9rem;
         }
@@ -253,7 +243,6 @@
             background: #f8f9fa;
         }
 
-        /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -268,7 +257,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .metric-card h2 {
                 font-size: 1.8rem;
@@ -285,6 +273,24 @@
             .user-info span {
                 display: none;
             }
+        }
+
+        .refresh-button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .refresh-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(180deg);
         }
     </style>
 </head>
@@ -367,7 +373,7 @@
                     <div class="metric-card bg-gradient-info">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6>Tegangan</h6>
+                                <h6>TEGANGAN</h6>
                                 <h2 id="voltage">0</h2>
                                 <small>Volt (V)</small>
                             </div>
@@ -379,7 +385,7 @@
                     <div class="metric-card bg-gradient-success">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6>Arus</h6>
+                                <h6>ARUS</h6>
                                 <h2 id="current">0</h2>
                                 <small>Ampere (A)</small>
                             </div>
@@ -391,7 +397,7 @@
                     <div class="metric-card bg-gradient-warning">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6>Daya</h6>
+                                <h6>DAYA</h6>
                                 <h2 id="power">0</h2>
                                 <small>Watt (W)</small>
                             </div>
@@ -403,7 +409,7 @@
                     <div class="metric-card bg-gradient-primary">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6>Frekuensi</h6>
+                                <h6>FREKUENSI</h6>
                                 <h2 id="frequency">0</h2>
                                 <small>Hertz (Hz)</small>
                             </div>
@@ -494,7 +500,7 @@
                             Histori Monitoring
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive" style="max-height: 300px;">
+                            <div class="table-responsive" style="max-height: 400px;">
                                 <table class="table history-table">
                                     <thead>
                                         <tr>
@@ -553,6 +559,7 @@
         });
 
         function loadDashboard(user) {
+            // Display user info
             document.getElementById('userEmail').textContent = user.email;
             
             const userRole = sessionStorage.getItem('userRole') || 'user';
@@ -596,11 +603,19 @@
                             beginAtZero: true,
                             grid: {
                                 color: 'rgba(0,0,0,0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Daya (Watt)'
                             }
                         },
                         x: {
                             grid: {
                                 display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Waktu'
                             }
                         }
                     }
@@ -627,6 +642,7 @@
 
             // Format currency
             function formatCurrency(value) {
+                if (value === undefined || value === null) return 'Rp 0';
                 return new Intl.NumberFormat('id-ID', { 
                     style: 'currency', 
                     currency: 'IDR',
@@ -635,23 +651,32 @@
                 }).format(value).replace('Rp', 'Rp ');
             }
 
-            // Listen for live data
+            // Format number to 1 decimal place
+            function formatNumber(value) {
+                if (value === undefined || value === null) return '0';
+                return Number(value).toFixed(1);
+            }
+
+            // LISTEN FOR LIVE DATA - PERBAIKAN PATH
             const liveRef = database.ref('monitoring/history/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
+                console.log('Live data received:', data); // Debugging
+                
                 if (data) {
-                    document.getElementById('voltage').textContent = data.voltage || 0;
-                    document.getElementById('current').textContent = data.current || 0;
-                    document.getElementById('power').textContent = data.power || 0;
-                    document.getElementById('frequency').textContent = data.frequency || 0;
-                    document.getElementById('pf').textContent = data.pf || 0;
-                    document.getElementById('energy_total').textContent = data.energy_total || 0;
-                    document.getElementById('energy_used').textContent = data.energy_used || 0;
+                    // Update all fields with proper formatting
+                    document.getElementById('voltage').textContent = formatNumber(data.voltage);
+                    document.getElementById('current').textContent = formatNumber(data.current);
+                    document.getElementById('power').textContent = formatNumber(data.power);
+                    document.getElementById('frequency').textContent = formatNumber(data.frequency);
+                    document.getElementById('pf').textContent = formatNumber(data.pf);
+                    document.getElementById('energy_total').textContent = formatNumber(data.energy_total);
+                    document.getElementById('energy_used').textContent = formatNumber(data.energy_used);
                     
-                    document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam || 0);
-                    document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari || 0);
-                    document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan || 0);
-                    document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total || 0);
+                    document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam);
+                    document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari);
+                    document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
+                    document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
 
                     // Update chart
                     const now = new Date();
@@ -665,7 +690,11 @@
                     powerChart.data.labels.push(timeLabel);
                     powerChart.data.datasets[0].data.push(data.power || 0);
                     powerChart.update();
+                } else {
+                    console.log('No live data available');
                 }
+            }, (error) => {
+                console.error('Error reading live data:', error);
             });
 
             // Listen for pump control
@@ -680,42 +709,66 @@
                     pumpStatus.className = 'badge bg-success status-badge';
                     toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
                     toggleBtn.className = 'btn btn-toggle btn-toggle-danger';
-                } else {
+                } else if (status === false) {
                     pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
                     pumpStatus.className = 'badge bg-secondary status-badge';
                     toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
                     toggleBtn.className = 'btn btn-toggle btn-toggle-success';
+                } else {
+                    pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
+                    pumpStatus.className = 'badge bg-warning status-badge';
                 }
             });
 
-            // Load history data
-            const historyRef = database.ref('monitoring/history').limitToLast(10);
+            // LOAD HISTORY DATA - PERBAIKAN PATH
+            const historyRef = database.ref('monitoring/history');
             historyRef.on('value', (snapshot) => {
                 const data = snapshot.val();
+                console.log('History data received:', data); // Debugging
+                
                 const tbody = document.getElementById('history-table');
                 
                 if (data) {
-                    let html = '';
-                    const historyArray = Object.entries(data).reverse();
+                    // Filter out the 'live' node and sort by time
+                    const historyArray = Object.entries(data)
+                        .filter(([key, value]) => key !== 'live' && value.time)
+                        .sort((a, b) => {
+                            // Sort by time descending (newest first)
+                            const timeA = a[1].time || '';
+                            const timeB = b[1].time || '';
+                            return timeB.localeCompare(timeA);
+                        })
+                        .slice(0, 10); // Take only 10 most recent
                     
-                    historyArray.forEach(([key, value]) => {
-                        if (value.time && key !== 'live') {
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
                             html += `<tr>
                                 <td>${value.time || '-'}</td>
-                                <td>${value.voltage || 0} V</td>
-                                <td>${value.current || 0} A</td>
-                                <td>${value.power || 0} W</td>
+                                <td>${formatNumber(value.voltage)} V</td>
+                                <td>${formatNumber(value.current)} A</td>
+                                <td>${formatNumber(value.power)} W</td>
                             </tr>`;
-                        }
-                    });
-                    
-                    if (html) {
+                        });
                         tbody.innerHTML = html;
                     } else {
                         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
                     }
                 } else {
                     tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
+                }
+            }, (error) => {
+                console.error('Error reading history:', error);
+                document.getElementById('history-table').innerHTML = 
+                    '<tr><td colspan="4" class="text-center text-danger">Error loading history</td></tr>';
+            });
+
+            // Test connection
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    console.log('Connected to Firebase');
+                } else {
+                    console.log('Disconnected from Firebase');
                 }
             });
         }
@@ -724,6 +777,11 @@
             const pumpRef = database.ref('monitoring/control/pompa');
             pumpRef.transaction((currentStatus) => {
                 return !currentStatus;
+            }).then(() => {
+                console.log('Pump toggled successfully');
+            }).catch((error) => {
+                console.error('Error toggling pump:', error);
+                alert('Gagal mengubah status pompa');
             });
         };
 
@@ -734,6 +792,11 @@
             }).catch((error) => {
                 console.error('Logout error:', error);
             });
+        };
+
+        // Manual refresh function (optional)
+        window.refreshData = function() {
+            location.reload();
         };
     </script>
 </body>
