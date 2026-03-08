@@ -598,7 +598,7 @@
         <div class="top-bar">
             <div class="page-title">
                 <h4>Dashboard Overview</h4>
-                <small id="userRole">Loading...</small>
+                <small id="userRoleDisplay">Loading...</small>
             </div>
             <div class="date-time" id="current-time">
                 <i class="fas fa-clock"></i>
@@ -845,8 +845,10 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        // ALLOWED UIDs - Sama dengan di halaman login
-        const ALLOWED_UIDS = ['7wrnhaDpsLRmPXP0nV9ICSpY582'];
+        // ALLOWED UIDs - SAMA PERSIS DENGAN PROGRAM LOGIN
+        const ALLOWED_UIDS = [
+            '7wrnhaDpsLRmPXPo9nV9ICSpY582'  // UID dari program login
+        ];
 
         // Check authentication
         auth.onAuthStateChanged((user) => {
@@ -866,11 +868,12 @@
 
         function loadDashboard(user) {
             // Display user info
-            document.getElementById('userEmail').textContent = user.email.split('@')[0];
+            const userEmail = user.email || 'Admin';
+            document.getElementById('userEmail').textContent = userEmail.split('@')[0];
             
             // Get user role from session storage (set during login)
             const userRole = sessionStorage.getItem('userRole') || 'admin';
-            document.getElementById('userRole').textContent = userRole;
+            document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userRole}`;
 
             // Initialize Charts
             const ctx1 = document.getElementById('powerChart').getContext('2d');
@@ -1026,8 +1029,11 @@
                     document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
 
                     // Add negative class if needed
+                    const biayaTotal = document.getElementById('biaya_total');
                     if (data.biaya_total < 0) {
-                        document.getElementById('biaya_total').classList.add('negative');
+                        biayaTotal.classList.add('negative');
+                    } else {
+                        biayaTotal.classList.remove('negative');
                     }
 
                     // Update power chart
@@ -1123,7 +1129,7 @@
                 const statusDiv = document.getElementById('connectionStatus');
                 if (snap.val() === true) {
                     statusDiv.style.display = 'flex';
-                    statusDiv.innerHTML = '<i class="fas fa-circle"></i><span>Terhubung ke server</span>';
+                    statusDiv.innerHTML = '<i class="fas fa-circle" style="color: #2ecc71;"></i><span>Terhubung ke server</span>';
                     setTimeout(() => {
                         statusDiv.style.display = 'none';
                     }, 3000);
@@ -1137,7 +1143,7 @@
             database.ref('users/' + user.uid).once('value').then((snapshot) => {
                 const userData = snapshot.val();
                 if (userData && userData.role) {
-                    document.getElementById('userRole').textContent = userData.role;
+                    document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userData.role}`;
                 }
             });
         }
