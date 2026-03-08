@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Monitoring</title>
+    <title>Dashboard Monitoring - Premium</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/id.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -18,509 +25,673 @@
         }
 
         body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 15px 0;
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 20%),
+                radial-gradient(circle at 40% 80%, rgba(255,255,255,0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 20%, rgba(255,255,255,0.1) 0%, transparent 20%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-2%, -2%) scale(1.05); }
+            75% { transform: translate(2%, 2%) scale(0.95); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 15px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .navbar-brand {
             color: white !important;
-            font-weight: 700;
-            font-size: 1.5rem;
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
         .navbar-brand i {
-            margin-right: 10px;
+            margin-right: 15px;
+            color: #ffd700;
+            animation: pulse 2s infinite;
         }
 
-        .nav-link {
-            color: rgba(255,255,255,0.9) !important;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .datetime-glass {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
             font-weight: 500;
-            padding: 8px 15px !important;
-            border-radius: 8px;
-            transition: all 0.3s;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white !important;
-        }
-
-        .user-info {
+        .user-info-glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 8px 15px;
-            background: rgba(255,255,255,0.1);
+            padding: 10px 25px;
             border-radius: 50px;
-            margin-right: 10px;
+            margin-right: 15px;
+            font-weight: 500;
         }
 
-        .user-info i {
-            margin-right: 8px;
-        }
-
-        .admin-badge {
-            background-color: #ffc107;
-            color: #000;
-            padding: 3px 10px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            margin-left: 8px;
-            text-transform: uppercase;
-        }
-
-        .btn-logout {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+        .btn-logout-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
             border-radius: 50px;
-            padding: 8px 20px;
+            padding: 10px 30px;
             font-weight: 600;
             transition: all 0.3s;
         }
 
-        .btn-logout:hover {
-            background: rgba(255,255,255,0.3);
-            color: white;
+        .btn-logout-glass:hover {
+            background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: white;
         }
 
-        .main-content {
-            padding: 30px 0;
-        }
-
-        .card-dashboard {
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        /* Control Panel Glass */
+        .control-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
+        }
+
+        .control-glass:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .control-title i {
+            margin-right: 15px;
+            color: #ffd700;
+        }
+
+        .status-badge-premium {
+            font-size: 1.3rem;
+            padding: 15px 40px;
+            border-radius: 60px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .btn-control-premium {
+            padding: 15px 45px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.2rem;
             border: none;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn-control-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        /* Metric Cards Premium */
+        .metric-card-premium {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 25px;
             margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            height: 100%;
+            position: relative;
             overflow: hidden;
         }
 
-        .card-dashboard:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+        .metric-card-premium::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
         }
 
-        .card-header {
-            background: white;
-            border-bottom: 2px solid #f0f0f0;
-            padding: 20px 25px;
-            font-weight: 600;
-            font-size: 1.1rem;
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .card-header i {
-            color: #667eea;
-            margin-right: 10px;
+        .metric-card-premium:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
         }
 
-        .card-body {
-            padding: 25px;
+        .metric-icon-premium {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
         }
 
-        .status-badge {
-            font-size: 1.2rem;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-        }
-
-        .btn-toggle {
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border: none;
-            transition: all 0.3s;
-        }
-
-        .btn-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-
-        .btn-toggle-success {
-            background: #28a745;
+        .metric-icon-premium i {
+            font-size: 32px;
             color: white;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
         }
 
-        .btn-toggle-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .metric-card {
-            padding: 25px;
-            border-radius: 15px;
-            color: white;
-            height: 100%;
-        }
-
-        .metric-card h6 {
+        .metric-label-premium {
+            color: rgba(255,255,255,0.7);
             font-size: 0.9rem;
-            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .metric-value-premium {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1.2;
+            margin-bottom: 5px;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.3);
+            animation: countUp 1s ease-out;
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metric-unit-premium {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Cost Cards Premium */
+        .cost-card-premium {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border-left: 6px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cost-card-premium::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 5s ease-in-out infinite;
+        }
+
+        .cost-card-premium:hover {
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .cost-label-premium {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .metric-card h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
+        .cost-label-premium i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .cost-value-premium {
+            font-size: 2.2rem;
+            font-weight: 800;
             margin-bottom: 0;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.3);
         }
 
-        .metric-card i {
-            font-size: 3rem;
-            opacity: 0.5;
+        /* Chart Card Premium */
+        .chart-card-premium {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .bg-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .bg-gradient-success { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
-        .bg-gradient-warning { background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%); }
-        .bg-gradient-info { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
-
-        .cost-card {
-            padding: 20px;
-            border-radius: 12px;
-            background: white;
-            border-left: 4px solid;
-            height: 100%;
-        }
-
-        .cost-card h6 {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-
-        .cost-card h3 {
-            font-size: 1.8rem;
+        .chart-title-premium {
+            color: white;
+            font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 0;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
-        .border-warning { border-left-color: #ffc107; }
-        .border-success { border-left-color: #28a745; }
-        .border-info { border-left-color: #17a2b8; }
-        .border-danger { border-left-color: #dc3545; }
+        .chart-title-premium i {
+            margin-right: 15px;
+            color: #ffd700;
+        }
 
-        .text-warning { color: #ffc107 !important; }
-        .text-success { color: #28a745 !important; }
-        .text-info { color: #17a2b8 !important; }
-        .text-danger { color: #dc3545 !important; }
-
-        .chart-container {
+        .chart-container-premium {
             position: relative;
-            height: 300px;
+            height: 350px;
             width: 100%;
+            background: rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 15px;
         }
 
-        .history-table {
-            font-size: 0.9rem;
+        /* History Table Premium */
+        .history-card-premium {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .history-table th {
-            background: #f8f9fa;
+        .history-table-premium {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .history-table-premium th {
+            background: rgba(255,255,255,0.15);
+            color: white;
             font-weight: 600;
-            color: #333;
-            padding: 12px;
+            padding: 15px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 12px;
         }
 
-        .history-table td {
-            padding: 10px 12px;
-            vertical-align: middle;
+        .history-table-premium td {
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
         }
 
-        .history-table tbody tr:hover {
-            background: #f8f9fa;
+        .history-table-premium tbody tr {
+            transition: all 0.3s;
+            cursor: pointer;
         }
 
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
+        .history-table-premium tbody tr:hover td {
+            background: rgba(255,255,255,0.15);
+            transform: scale(1.02);
+        }
+
+        /* Border Colors */
+        .border-glow-warning { border-left-color: #ffd700; }
+        .border-glow-success { border-left-color: #00ff88; }
+        .border-glow-info { border-left-color: #00ffff; }
+        .border-glow-danger { border-left-color: #ff6b6b; }
+
+        .text-glow-warning { color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+        .text-glow-success { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+        .text-glow-info { color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        .text-glow-danger { color: #ff6b6b; text-shadow: 0 0 20px rgba(255,107,107,0.5); }
+
+        /* Loading Animation */
+        .loader-premium {
+            width: 50px;
+            height: 50px;
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .metric-card h2 {
-                font-size: 1.8rem;
+            .metric-value-premium {
+                font-size: 2rem;
             }
             
-            .cost-card h3 {
-                font-size: 1.4rem;
+            .cost-value-premium {
+                font-size: 1.6rem;
             }
             
             .navbar-brand {
-                font-size: 1.2rem;
+                font-size: 1.3rem;
             }
-            
-            .user-info span {
-                display: none;
-            }
-        }
-
-        .refresh-button {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .refresh-button:hover {
-            background: rgba(255,255,255,0.3);
-            transform: rotate(180deg);
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
+    <!-- Navbar Premium -->
+    <nav class="navbar-glass navbar navbar-expand-lg">
+        <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                <i class="fas fa-chart-line"></i>
-                Monitoring Dashboard
+                <i class="fas fa-chart-pie"></i>
+                Energy Monitor Pro
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <span class="nav-link" id="current-time">
-                            <i class="fas fa-clock me-2"></i>
-                            <span class="loading-spinner"></span>
-                        </span>
-                    </li>
-                    <li class="nav-item">
-                        <span class="user-info">
-                            <i class="fas fa-user-circle"></i>
-                            <span id="userEmail"></span>
-                            <span id="userRole" class="admin-badge"></span>
-                        </span>
-                    </li>
-                    <li class="nav-item">
-                        <button class="btn btn-logout" onclick="logout()">
-                            <i class="fas fa-sign-out-alt me-2"></i>
-                            Logout
-                        </button>
-                    </li>
-                </ul>
+            <div class="d-flex align-items-center">
+                <span class="datetime-glass me-3" id="current-time">
+                    <i class="fas fa-clock me-2"></i>
+                    <span class="loader-premium" style="width: 20px; height: 20px;"></span>
+                </span>
+                
+                <span class="user-info-glass">
+                    <i class="fas fa-user-astronaut me-2"></i>
+                    <span id="userEmail">Loading...</span>
+                    <span id="userRole" class="admin-badge"></span>
+                </span>
+                
+                <button class="btn-logout-glass" onclick="logout()">
+                    <i class="fas fa-rocket me-2"></i>
+                    Logout
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <!-- Control Panel -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card-dashboard">
-                        <div class="card-header">
-                            <i class="fas fa-sliders-h"></i>
-                            Panel Kontrol Pompa
-                        </div>
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center">
-                                        <span class="me-3 fw-bold">Status Pompa:</span>
-                                        <span id="pump-status" class="badge bg-secondary status-badge">
-                                            <span class="loading-spinner me-2"></span>
-                                            Loading...
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                                    <button id="btn-toggle-pump" class="btn btn-toggle btn-toggle-success" onclick="togglePump()">
-                                        <i class="fas fa-power-off me-2"></i>
-                                        Loading...
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Real-time Monitoring Cards -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="metric-card bg-gradient-info">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6>TEGANGAN</h6>
-                                <h2 id="voltage">0</h2>
-                                <small>Volt (V)</small>
-                            </div>
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="metric-card bg-gradient-success">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6>ARUS</h6>
-                                <h2 id="current">0</h2>
-                                <small>Ampere (A)</small>
-                            </div>
-                            <i class="fas fa-wave-square"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="metric-card bg-gradient-warning">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6>DAYA</h6>
-                                <h2 id="power">0</h2>
-                                <small>Watt (W)</small>
-                            </div>
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="metric-card bg-gradient-primary">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6>FREKUENSI</h6>
-                                <h2 id="frequency">0</h2>
-                                <small>Hertz (Hz)</small>
-                            </div>
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Secondary Metrics -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="card-dashboard">
-                        <div class="card-body">
-                            <h6 class="text-muted mb-2">Power Factor</h6>
-                            <h2 class="mb-0" id="pf">0</h2>
-                            <small class="text-success">Normal</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card-dashboard">
-                        <div class="card-body">
-                            <h6 class="text-muted mb-2">Energi Total</h6>
-                            <h2 class="mb-0" id="energy_total">0</h2>
-                            <small>kWh</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card-dashboard">
-                        <div class="card-body">
-                            <h6 class="text-muted mb-2">Energi Terpakai</h6>
-                            <h2 class="mb-0" id="energy_used">0</h2>
-                            <small>kWh</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Biaya Cards -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="cost-card border-warning">
-                        <h6>Biaya per Jam</h6>
-                        <h3 class="text-warning mb-0" id="biaya_per_jam">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="cost-card border-success">
-                        <h6>Biaya per Hari</h6>
-                        <h3 class="text-success mb-0" id="biaya_per_hari">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="cost-card border-info">
-                        <h6>Biaya per Bulan</h6>
-                        <h3 class="text-info mb-0" id="biaya_per_bulan">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="cost-card border-danger">
-                        <h6>Biaya Total</h6>
-                        <h3 class="text-danger mb-0" id="biaya_total">Rp 0</h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row -->
-            <div class="row g-4 mb-4">
+    <div class="container">
+        <!-- Control Panel Premium -->
+        <div class="control-glass" data-aos="fade-up">
+            <h3 class="control-title">
+                <i class="fas fa-microchip"></i>
+                Panel Kontrol Pompa
+            </h3>
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                    <div class="card-dashboard">
-                        <div class="card-header">
-                            <i class="fas fa-chart-line"></i>
-                            Grafik Daya Real-time
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="powerChart"></canvas>
-                            </div>
-                        </div>
+                    <div class="d-flex align-items-center">
+                        <span class="me-4 fw-bold text-white" style="font-size: 1.2rem;">Status Pompa:</span>
+                        <span id="pump-status" class="badge status-badge-premium">
+                            <span class="loader-premium me-2" style="width: 20px; height: 20px;"></span>
+                            Loading...
+                        </span>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card-dashboard">
-                        <div class="card-header">
-                            <i class="fas fa-history"></i>
-                            Histori Monitoring
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive" style="max-height: 400px;">
-                                <table class="table history-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Waktu</th>
-                                            <th>Tegangan</th>
-                                            <th>Arus</th>
-                                            <th>Daya</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="history-table">
-                                        <tr>
-                                            <td colspan="4" class="text-center">Loading...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <button id="btn-toggle-pump" class="btn-control-premium" onclick="togglePump()">
+                        <i class="fas fa-power-off me-2"></i>
+                        Loading...
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Cards Premium -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="metric-label-premium">TEGANGAN</div>
+                    <div class="metric-value-premium" id="voltage">0</div>
+                    <div class="metric-unit-premium">Volt (V)</div>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="metric-label-premium">ARUS</div>
+                    <div class="metric-value-premium" id="current">0</div>
+                    <div class="metric-unit-premium">Ampere (A)</div>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="metric-label-premium">DAYA</div>
+                    <div class="metric-value-premium" id="power">0</div>
+                    <div class="metric-unit-premium">Watt (W)</div>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <div class="metric-label-premium">FREKUENSI</div>
+                    <div class="metric-value-premium" id="frequency">0</div>
+                    <div class="metric-unit-premium">Hertz (Hz)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Metrics Premium -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-adjust"></i>
+                    </div>
+                    <div class="metric-label-premium">POWER FACTOR</div>
+                    <div class="metric-value-premium" id="pf">0</div>
+                    <div class="metric-unit-premium">Cos φ</div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-battery-full"></i>
+                    </div>
+                    <div class="metric-label-premium">ENERGI TOTAL</div>
+                    <div class="metric-value-premium" id="energy_total">0</div>
+                    <div class="metric-unit-premium">kWh</div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="700">
+                <div class="metric-card-premium">
+                    <div class="metric-icon-premium">
+                        <i class="fas fa-battery-half"></i>
+                    </div>
+                    <div class="metric-label-premium">ENERGI TERPAKAI</div>
+                    <div class="metric-value-premium" id="energy_used">0</div>
+                    <div class="metric-unit-premium">kWh</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biaya Cards Premium -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="800">
+                <div class="cost-card-premium border-glow-warning">
+                    <div class="cost-label-premium">
+                        <i class="fas fa-hourglass-half text-glow-warning"></i>
+                        Biaya per Jam
+                    </div>
+                    <div class="cost-value-premium text-glow-warning" id="biaya_per_jam">Rp 0</div>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="900">
+                <div class="cost-card-premium border-glow-success">
+                    <div class="cost-label-premium">
+                        <i class="fas fa-calendar-day text-glow-success"></i>
+                        Biaya per Hari
+                    </div>
+                    <div class="cost-value-premium text-glow-success" id="biaya_per_hari">Rp 0</div>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="1000">
+                <div class="cost-card-premium border-glow-info">
+                    <div class="cost-label-premium">
+                        <i class="fas fa-calendar-alt text-glow-info"></i>
+                        Biaya per Bulan
+                    </div>
+                    <div class="cost-value-premium text-glow-info" id="biaya_per_bulan">Rp 0</div>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="1100">
+                <div class="cost-card-premium border-glow-danger">
+                    <div class="cost-label-premium">
+                        <i class="fas fa-coins text-glow-danger"></i>
+                        Biaya Total
+                    </div>
+                    <div class="cost-value-premium text-glow-danger" id="biaya_total">Rp 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row Premium -->
+        <div class="row g-4">
+            <div class="col-md-6" data-aos="fade-right" data-aos-delay="1200">
+                <div class="chart-card-premium">
+                    <h5 class="chart-title-premium">
+                        <i class="fas fa-wave-square"></i>
+                        Grafik Daya Real-time
+                    </h5>
+                    <div class="chart-container-premium">
+                        <canvas id="powerChart"></canvas>
+                    </div>
+                    <div class="mt-3 text-center text-white-50">
+                        <i class="fas fa-arrow-up text-success me-2"></i>
+                        <span id="power-trend">0%</span> dari rata-rata
                     </div>
                 </div>
             </div>
+            <div class="col-md-6" data-aos="fade-left" data-aos-delay="1300">
+                <div class="chart-card-premium">
+                    <h5 class="chart-title-premium">
+                        <i class="fas fa-chart-pie"></i>
+                        Distribusi Daya
+                    </h5>
+                    <div class="chart-container-premium">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12" data-aos="fade-up" data-aos-delay="1400">
+                <div class="history-card-premium">
+                    <h5 class="chart-title-premium">
+                        <i class="fas fa-history"></i>
+                        Histori Monitoring
+                    </h5>
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="history-table-premium">
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Tegangan (V)</th>
+                                    <th>Arus (A)</th>
+                                    <th>Daya (W)</th>
+                                    <th>Frekuensi (Hz)</th>
+                                    <th>PF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table">
+                                <tr>
+                                    <td colspan="6" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="position-fixed bottom-0 end-0 m-4 p-3 rounded-pill" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); display: none;">
+            <i class="fas fa-circle text-success me-2"></i>
+            <span class="text-white">Connected</span>
         </div>
     </div>
 
@@ -531,8 +702,18 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
     <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBbP7pZ6YlzAUNOSAfxtt0wRS8GIebZHq0",
@@ -559,64 +740,132 @@
         });
 
         function loadDashboard(user) {
-            // Display user info
             document.getElementById('userEmail').textContent = user.email;
             
             const userRole = sessionStorage.getItem('userRole') || 'user';
             if (userRole === 'admin') {
                 document.getElementById('userRole').textContent = 'Admin';
-            } else {
-                document.getElementById('userRole').style.display = 'none';
             }
 
-            // Initialize chart
-            const ctx = document.getElementById('powerChart').getContext('2d');
-            const powerChart = new Chart(ctx, {
+            // Initialize Charts
+            const ctx1 = document.getElementById('powerChart').getContext('2d');
+            const ctx2 = document.getElementById('distributionChart').getContext('2d');
+
+            // Gradient for power chart
+            const gradient1 = ctx1.createLinearGradient(0, 0, 0, 400);
+            gradient1.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+            gradient1.addColorStop(1, 'rgba(255, 215, 0, 0)');
+
+            // Power Chart
+            const powerChart = new Chart(ctx1, {
                 type: 'line',
                 data: {
                     labels: [],
                     datasets: [{
                         label: 'Daya (W)',
                         data: [],
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
+                        borderColor: '#ffd700',
+                        backgroundColor: gradient1,
+                        borderWidth: 4,
+                        tension: 0.4,
                         fill: true,
-                        pointBackgroundColor: '#667eea',
+                        pointBackgroundColor: '#ffd700',
                         pointBorderColor: 'white',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointBorderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        pointHoverBackgroundColor: '#ffd700',
+                        pointHoverBorderColor: 'white',
+                        pointHoverBorderWidth: 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255,255,255,0.2)',
+                            borderWidth: 1,
+                            backdropColor: 'rgba(0,0,0,0.5)',
+                            callbacks: {
+                                label: (context) => `Daya: ${context.raw.toFixed(1)} W`
+                            }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             grid: {
-                                color: 'rgba(0,0,0,0.05)'
+                                color: 'rgba(255,255,255,0.1)',
+                                drawBorder: false
                             },
-                            title: {
-                                display: true,
-                                text: 'Daya (Watt)'
+                            ticks: {
+                                color: 'white',
+                                callback: (value) => value + ' W'
                             }
                         },
                         x: {
                             grid: {
                                 display: false
                             },
-                            title: {
-                                display: true,
-                                text: 'Waktu'
+                            ticks: {
+                                color: 'white',
+                                maxRotation: 45,
+                                minRotation: 45
                             }
+                        }
+                    }
+                }
+            });
+
+            // Distribution Chart
+            const distributionChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Daya Aktif', 'Daya Reaktif', 'Cadangan'],
+                    datasets: [{
+                        data: [70, 20, 10],
+                        backgroundColor: [
+                            'rgba(255, 215, 0, 0.8)',
+                            'rgba(0, 255, 136, 0.8)',
+                            'rgba(255, 107, 107, 0.8)'
+                        ],
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 2,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1500
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            titleColor: 'white',
+                            bodyColor: 'white'
                         }
                     }
                 }
@@ -625,22 +874,14 @@
             // Update time
             function updateTime() {
                 const now = new Date();
-                const options = { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                };
+                moment.locale('id');
                 document.getElementById('current-time').innerHTML = 
-                    `<i class="fas fa-clock me-2"></i>${now.toLocaleDateString('id-ID', options)}`;
+                    `<i class="fas fa-clock me-2"></i>${moment(now).format('dddd, DD MMMM YYYY HH:mm:ss')}`;
             }
             setInterval(updateTime, 1000);
             updateTime();
 
-            // Format currency
+            // Format functions
             function formatCurrency(value) {
                 if (value === undefined || value === null) return 'Rp 0';
                 return new Intl.NumberFormat('id-ID', { 
@@ -651,20 +892,25 @@
                 }).format(value).replace('Rp', 'Rp ');
             }
 
-            // Format number
             function formatNumber(value, decimals = 1) {
                 if (value === undefined || value === null) return '0';
                 return Number(value).toFixed(decimals);
             }
 
-            // ===== DATA REAL-TIME DARI monitoring/live =====
+            // Update trend
+            function updateTrend(data) {
+                const avg = data.reduce((a, b) => a + b, 0) / data.length;
+                const latest = data[data.length - 1] || 0;
+                const trend = avg > 0 ? ((latest - avg) / avg * 100).toFixed(1) : 0;
+                document.getElementById('power-trend').innerHTML = 
+                    `${trend > 0 ? '+' : ''}${trend}%`;
+            }
+
+            // Listen for live data
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('Live data received:', data);
-                
                 if (data) {
-                    // Update semua field real-time
                     document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
                     document.getElementById('current').textContent = formatNumber(data.current, 2);
                     document.getElementById('power').textContent = formatNumber(data.power, 1);
@@ -678,11 +924,11 @@
                     document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
                     document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
 
-                    // Update chart dengan data real-time
+                    // Update power chart
                     const now = new Date();
-                    const timeLabel = now.toLocaleTimeString();
+                    const timeLabel = moment(now).format('HH:mm:ss');
                     
-                    if (powerChart.data.labels.length > 20) {
+                    if (powerChart.data.labels.length > 15) {
                         powerChart.data.labels.shift();
                         powerChart.data.datasets[0].data.shift();
                     }
@@ -690,51 +936,18 @@
                     powerChart.data.labels.push(timeLabel);
                     powerChart.data.datasets[0].data.push(data.power || 0);
                     powerChart.update();
-                } else {
-                    console.log('No live data available');
-                }
-            }, (error) => {
-                console.error('Error reading live data:', error);
-            });
-
-            // ===== DATA HISTORY DARI monitoring/history =====
-            const historyRef = database.ref('monitoring/history');
-            historyRef.limitToLast(10).on('value', (snapshot) => {
-                const data = snapshot.val();
-                console.log('History data received:', data);
-                
-                const tbody = document.getElementById('history-table');
-                
-                if (data) {
-                    // Konversi object ke array dan urutkan dari terbaru
-                    const historyArray = Object.entries(data)
-                        .sort((a, b) => {
-                            // Sort by key (timestamp) descending
-                            return b[0].localeCompare(a[0]);
-                        })
-                        .slice(0, 10);
                     
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.time || key}</td>
-                                <td>${formatNumber(value.voltage, 1)} V</td>
-                                <td>${formatNumber(value.current, 2)} A</td>
-                                <td>${formatNumber(value.power, 1)} W</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
+                    // Update trend
+                    updateTrend(powerChart.data.datasets[0].data);
+                    
+                    // Update distribution chart based on power factor
+                    if (data.pf) {
+                        const active = data.pf * 100;
+                        const reactive = 100 - active;
+                        distributionChart.data.datasets[0].data = [active, reactive, 0];
+                        distributionChart.update();
                     }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
                 }
-            }, (error) => {
-                console.error('Error reading history:', error);
-                document.getElementById('history-table').innerHTML = 
-                    '<tr><td colspan="4" class="text-center text-danger">Error loading history</td></tr>';
             });
 
             // Listen for pump control
@@ -746,48 +959,62 @@
                 
                 if (status === true) {
                     pumpStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>AKTIF';
-                    pumpStatus.className = 'badge bg-success status-badge';
-                    toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
-                    toggleBtn.className = 'btn btn-toggle btn-toggle-danger';
-                } else if (status === false) {
-                    pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
-                    pumpStatus.className = 'badge bg-secondary status-badge';
-                    toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
-                    toggleBtn.className = 'btn btn-toggle btn-toggle-success';
+                    pumpStatus.className = 'badge status-badge-premium bg-success';
+                    toggleBtn.innerHTML = '<i class="fas fa-stop-circle me-2"></i>Matikan Pompa';
+                    toggleBtn.className = 'btn-control-premium';
                 } else {
-                    pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
-                    pumpStatus.className = 'badge bg-warning status-badge';
+                    pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
+                    pumpStatus.className = 'badge status-badge-premium bg-secondary';
+                    toggleBtn.innerHTML = '<i class="fas fa-play-circle me-2"></i>Hidupkan Pompa';
+                    toggleBtn.className = 'btn-control-premium';
                 }
             });
 
-            // Test connection
-            database.ref('.info/connected').on('value', (snapshot) => {
-                if (snapshot.val() === true) {
-                    console.log('Connected to Firebase');
-                } else {
-                    console.log('Disconnected from Firebase');
+            // Load history
+            const historyRef = database.ref('monitoring/history');
+            historyRef.limitToLast(10).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('history-table');
+                
+                if (data) {
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 10);
+                    
+                    let html = '';
+                    historyArray.forEach(([key, value]) => {
+                        html += `<tr>
+                            <td>${value.time || key}</td>
+                            <td>${formatNumber(value.voltage, 1)} V</td>
+                            <td>${formatNumber(value.current, 2)} A</td>
+                            <td>${formatNumber(value.power, 1)} W</td>
+                            <td>${formatNumber(value.frequency, 0)} Hz</td>
+                            <td>${formatNumber(value.pf, 2)}</td>
+                        </tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+            });
+
+            // Connection status
+            database.ref('.info/connected').on('value', (snap) => {
+                const statusDiv = document.getElementById('connectionStatus');
+                if (snap.val()) {
+                    statusDiv.style.display = 'block';
+                    setTimeout(() => statusDiv.style.display = 'none', 3000);
                 }
             });
         }
 
         window.togglePump = function() {
             const pumpRef = database.ref('monitoring/control/pompa');
-            pumpRef.transaction((currentStatus) => {
-                return !currentStatus;
-            }).then(() => {
-                console.log('Pump toggled successfully');
-            }).catch((error) => {
-                console.error('Error toggling pump:', error);
-                alert('Gagal mengubah status pompa');
-            });
+            pumpRef.transaction((current) => !current);
         };
 
         window.logout = function() {
             auth.signOut().then(() => {
                 sessionStorage.clear();
                 window.location.href = 'index.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
             });
         };
     </script>
