@@ -592,8 +592,6 @@
         <div class="sidebar-brand">
             <h3><i class="fas fa-chart-pie"></i> Energy Monitor</h3>
             <small>Professional Dashboard</small>
-            <small>By MUHAMMAD FAISAL KHADAFI</small>
-            <small>VERSION 1.0</small>
         </div>
         
         <ul class="sidebar-menu">
@@ -1267,114 +1265,104 @@
                 }
             });
 
-            
             // ===== LOAD HOURLY HISTORY DENGAN SORTING YANG BENAR =====
-// ===== LOAD HOURLY HISTORY - ALTERNATIF TERAKHIR =====
-const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
-hourlyRef.once('value', (snapshot) => {
-    const data = snapshot.val();
-    const tbody = document.getElementById('hourly-history-table');
-    
-    if (data) {
-        // Ambil semua key, sortir secara manual
-        const keys = Object.keys(data);
-        
-        // Sortir keys secara descending
-        keys.sort().reverse();
-        
-        // Ambil 50 key teratas
-        const topKeys = keys.slice(0, 50);
-        
-        let html = '';
-        topKeys.forEach(key => {
-            const item = data[key];
-            
-            // Ekstrak dari key
-            const keyParts = key.split('_');
-            const datePart = keyParts[0]; // YYYY-MM-DD
-            const hourPart = keyParts[1] || '00';
-            
-            // Konversi tanggal
-            const [tahun, bulan, hari] = datePart.split('-');
-            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-            
-            // Format jam
-            const jamFormatted = hourPart.padStart(2, '0');
-            
-            html += `<tr>
-                <td>${tanggalFormatted}</td>
-                <td>${jamFormatted}:00</td>
-                <td>${formatNumber(item.total_energi || 0, 3)} kWh</td>
-                <td>${formatNumber(item.rata_rata_daya || 0, 1)} W</td>
-                <td>${formatCurrency(item.total_biaya || 0)}</td>
-            </tr>`;
-        });
-        
-        tbody.innerHTML = html;
-    } else {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-    }
-});
-
-           // ===== LOAD HOURLY HISTORY DENGAN SORTING PAKSA =====
-const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
-hourlyRef.once('value', (snapshot) => {
-    const data = snapshot.val();
-    const tbody = document.getElementById('hourly-history-table');
-    
-    if (data) {
-        // Konversi ke array dan buat timestamp buatan untuk sorting
-        const historyArray = Object.entries(data).map(([key, value]) => {
-            // Buat timestamp dari key (YYYY-MM-DD_HH)
-            const keyParts = key.split('_');
-            const datePart = keyParts[0]; // YYYY-MM-DD
-            const hourPart = keyParts[1] || '00';
-            
-            // Buat string ISO untuk sorting: YYYY-MM-DDTHH:00:00
-            const sortKey = `${datePart}T${hourPart.padStart(2, '0')}:00:00`;
-            
-            return {
-                originalKey: key,
-                sortKey: sortKey,
-                tanggal: value.tanggal || datePart.split('-').reverse().join('-'),
-                jam: hourPart,
-                total_energi: value.total_energi || 0,
-                rata_rata_daya: value.rata_rata_daya || 0,
-                total_biaya: value.total_biaya || 0,
-                ...value
-            };
-        });
-        
-        // SORTING berdasarkan sortKey (DESCENDING - terbaru di atas)
-        historyArray.sort((a, b) => {
-            return b.sortKey.localeCompare(a.sortKey);
-        });
-        
-        // Ambil 50 data teratas
-        const top50 = historyArray.slice(0, 50);
-        
-        if (top50.length > 0) {
-            let html = '';
-            top50.forEach(item => {
-                // Format jam dengan leading zero
-                const jamFormatted = item.jam.toString().padStart(2, '0');
+            const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
+            hourlyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('hourly-history-table');
                 
-                html += `<tr>
-                    <td>${item.tanggal}</td>
-                    <td>${jamFormatted}:00</td>
-                    <td>${formatNumber(item.total_energi, 3)} kWh</td>
-                    <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
-                    <td>${formatCurrency(item.total_biaya)}</td>
-                </tr>`;
+                if (data) {
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
+                    
+                    // SORTING berdasarkan key (YYYY-MM-DD_HH)
+                    historyArray.sort((a, b) => {
+                        return b.key.localeCompare(a.key); // Descending
+                    });
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
+                        let html = '';
+                        top50.forEach(item => {
+                            // Ekstrak tanggal dan jam dari key
+                            const keyParts = item.key.split('_');
+                            const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
+                            const jamKey = keyParts[1] || '00';
+                            
+                            // Konversi tanggal ke format DD-MM-YYYY
+                            const [tahun, bulan, hari] = tanggalKey.split('-');
+                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                            
+                            // Gunakan data dari Firebase jika ada, atau dari key
+                            const tanggal = item.tanggal || tanggalFormatted;
+                            const jam = item.jam !== undefined ? 
+                                (typeof item.jam === 'number' ? item.jam.toString().padStart(2, '0') : item.jam) : 
+                                jamKey.padStart(2, '0');
+                            
+                            html += `<tr>
+                                <td>${tanggal}</td>
+                                <td>${jam}:00</td>
+                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
+                                <td>${formatCurrency(item.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
+                }
             });
-            tbody.innerHTML = html;
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-        }
-    } else {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-    }
-});
+
+            // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
+            const dailyRef = database.ref('monitoring/monitoring/history_daily');
+            dailyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('daily-history-table');
+                
+                if (data) {
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
+                    
+                    // SORTING berdasarkan key (YYYY-MM-DD)
+                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
+                        let html = '';
+                        top50.forEach(item => {
+                            // Konversi key ke format tanggal
+                            const [tahun, bulan, hari] = item.key.split('-');
+                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                            
+                            html += `<tr>
+                                <td>${item.tanggal || tanggalFormatted}</td>
+                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(item.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
+                }
+            });
+
             // ===== LOAD MONTHLY HISTORY DENGAN SORTING YANG BENAR =====
             const monthlyRef = database.ref('monitoring/monitoring/history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
@@ -1491,7 +1479,3 @@ hourlyRef.once('value', (snapshot) => {
     </script>
 </body>
 </html>
-
-
-
-
