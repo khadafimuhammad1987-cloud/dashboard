@@ -18,655 +18,491 @@
         }
 
         body {
-            background-color: #f4f7fc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        /* Navbar */
-        .navbar {
-            background: linear-gradient(135deg, #283048 0%, #1e2b4a 100%);
-            padding: 15px 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        .navbar-brand {
-            color: white !important;
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #333;
             font-weight: 700;
-            font-size: 1.6rem;
-            letter-spacing: 0.5px;
+            font-size: 1.8rem;
         }
 
-        .navbar-brand i {
-            margin-right: 12px;
-            color: #ffd700;
-            text-shadow: 0 2px 5px rgba(255,215,0,0.3);
-        }
-
-        .user-info {
-            color: white;
-            background: rgba(255,255,255,0.15);
-            padding: 8px 22px;
-            border-radius: 50px;
+        .header h1 i {
+            color: #667eea;
             margin-right: 15px;
-            font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .user-info i {
-            margin-right: 8px;
-            color: #ffd700;
-        }
-
-        .btn-logout {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+        .datetime {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 12px 25px;
             border-radius: 50px;
-            padding: 8px 25px;
             font-weight: 600;
-            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-logout:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 30px 0;
+        .datetime i {
+            margin-right: 10px;
         }
 
         /* Control Panel */
         .control-panel {
-            background: white;
-            border-radius: 25px;
-            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
         }
 
-        .control-panel h4 {
-            color: #1e2b4a;
+        .control-panel h3 {
+            color: #333;
+            margin-bottom: 20px;
             font-weight: 700;
-            margin-bottom: 25px;
-            font-size: 1.5rem;
         }
 
-        .control-panel h4 i {
-            color: #283048;
-            margin-right: 12px;
-            background: #f0f3f8;
-            padding: 10px;
-            border-radius: 12px;
+        .control-panel h3 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .pump-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .status-badge {
-            font-size: 1.4rem;
-            padding: 12px 40px;
-            border-radius: 60px;
+            font-size: 1.3rem;
+            padding: 12px 35px;
+            border-radius: 50px;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
 
         .btn-control {
-            padding: 14px 45px;
-            border-radius: 60px;
+            padding: 12px 40px;
+            border-radius: 50px;
             font-weight: 600;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             border: none;
             transition: all 0.3s;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-control-success {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: white;
-            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
-        }
-
-        .btn-control-danger {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
         }
 
         .btn-control:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         /* Metric Cards */
         .metric-card {
-            background: white;
-            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             transition: all 0.3s;
             height: 100%;
-            position: relative;
-            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .metric-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-        }
-
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #283048, #4a69bd);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
         }
 
         .metric-icon {
             width: 60px;
             height: 60px;
-            border-radius: 18px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #f0f3f8, #e4e9f2);
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .metric-icon i {
             font-size: 28px;
-            color: #1e2b4a;
+            color: white;
         }
 
         .metric-label {
-            color: #7f8c8d;
+            color: #666;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
-            font-weight: 600;
         }
 
         .metric-value {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            color: #1e2b4a;
+            color: #333;
             line-height: 1.2;
             margin-bottom: 5px;
-            font-family: 'Arial', sans-serif;
         }
 
         .metric-unit {
-            color: #95a5a6;
-            font-size: 0.95rem;
-            font-weight: 500;
+            color: #999;
+            font-size: 0.9rem;
         }
 
         /* Cost Cards */
         .cost-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            border-left: 6px solid;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-left: 5px solid;
             transition: all 0.3s;
+            backdrop-filter: blur(10px);
         }
 
         .cost-card:hover {
-            transform: translateX(8px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            transform: translateX(5px);
         }
 
         .cost-label {
-            color: #7f8c8d;
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
         }
 
         .cost-label i {
             margin-right: 8px;
-            font-size: 1.1rem;
         }
 
         .cost-value {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 1.8rem;
+            font-weight: 700;
             margin-bottom: 0;
-            font-family: 'Arial', sans-serif;
         }
-
-        .border-warning { border-left-color: #f39c12; }
-        .border-success { border-left-color: #2ecc71; }
-        .border-info { border-left-color: #3498db; }
-        .border-danger { border-left-color: #e74c3c; }
 
         /* Chart Card */
         .chart-card {
-            background: white;
-            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
         }
 
-        .chart-card h5 {
-            color: #1e2b4a;
+        .chart-card h4 {
+            color: #333;
+            margin-bottom: 20px;
             font-weight: 700;
-            margin-bottom: 25px;
-            font-size: 1.3rem;
         }
 
-        .chart-card h5 i {
-            color: #283048;
-            margin-right: 12px;
-            background: #f0f3f8;
-            padding: 8px 12px;
-            border-radius: 12px;
+        .chart-card h4 i {
+            color: #667eea;
+            margin-right: 10px;
         }
 
         .chart-container {
             position: relative;
-            height: 320px;
+            height: 300px;
             width: 100%;
         }
 
         /* History Table */
         .history-card {
-            background: white;
-            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
         }
 
-        .history-card h5 {
-            color: #1e2b4a;
+        .history-card h4 {
+            color: #333;
+            margin-bottom: 20px;
             font-weight: 700;
-            margin-bottom: 25px;
-            font-size: 1.3rem;
         }
 
-        .history-card h5 i {
-            color: #283048;
-            margin-right: 12px;
-            background: #f0f3f8;
-            padding: 8px 12px;
-            border-radius: 12px;
+        .history-card h4 i {
+            color: #667eea;
+            margin-right: 10px;
         }
 
         .history-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px;
+            border-collapse: collapse;
         }
 
         .history-table th {
-            background: #f8fafd;
-            color: #1e2b4a;
-            font-weight: 700;
-            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px;
             font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: none;
         }
 
         .history-table td {
-            padding: 15px;
-            background: white;
-            border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-            font-weight: 500;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            color: #333;
         }
 
-        .history-table tbody tr:hover td {
-            background: #f8fafd;
+        .history-table tbody tr:hover {
+            background: #f8f9fa;
         }
 
-        /* Current Time */
-        .current-time {
-            color: white;
-            font-size: 1rem;
-            background: rgba(255,255,255,0.15);
-            padding: 8px 22px;
-            border-radius: 50px;
-            margin-right: 15px;
-            font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+        /* Border Colors */
+        .border-warning { border-left-color: #f39c12; }
+        .border-success { border-left-color: #2ecc71; }
+        .border-info { border-left-color: #3498db; }
+        .border-danger { border-left-color: #e74c3c; }
 
-        .current-time i {
-            margin-right: 8px;
-            color: #ffd700;
-        }
-
-        /* Admin Badge */
-        .admin-badge {
-            background: linear-gradient(135deg, #ffd700, #f39c12);
-            color: #1e2b4a;
-            padding: 3px 12px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            margin-left: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .text-warning { color: #f39c12 !important; }
+        .text-success { color: #2ecc71 !important; }
+        .text-info { color: #3498db !important; }
+        .text-danger { color: #e74c3c !important; }
 
         /* Responsive */
         @media (max-width: 768px) {
             .metric-value {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
             .cost-value {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
             }
             
-            .status-badge {
-                font-size: 1.1rem;
-                padding: 8px 25px;
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
             }
-            
-            .btn-control {
-                padding: 10px 30px;
-                font-size: 1rem;
-            }
-        }
-
-        /* Negative Value Style */
-        .text-danger-custom {
-            color: #e74c3c !important;
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Connection Status */
-        .connection-status {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            z-index: 1000;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        .connected {
-            background: #2ecc71;
-            color: white;
-        }
-        .disconnected {
-            background: #e74c3c;
-            color: white;
         }
     </style>
 </head>
 <body>
-    <!-- Connection Status -->
-    <div id="connectionStatus" class="connection-status disconnected">
-        <i class="fas fa-circle-notch fa-spin me-2"></i>Connecting...
-    </div>
-
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <a class="navbar-brand" href="#">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
                 <i class="fas fa-chart-line"></i>
                 Monitoring Dashboard
-            </a>
-            
-            <div class="d-flex align-items-center">
-                <span class="current-time" id="current-time">
-                    <i class="fas fa-clock"></i>
-                    <span class="spinner"></span>
-                </span>
-                
-                <span class="user-info">
-                    <i class="fas fa-user-circle"></i>
-                    <span id="userEmail">Loading...</span>
-                    <span id="userRole" class="admin-badge"></span>
-                </span>
-                
-                <button class="btn-logout" onclick="logout()">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    Logout
-                </button>
+            </h1>
+            <div class="datetime" id="currentTime">
+                <i class="fas fa-clock"></i>
+                Loading...
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <!-- Control Panel -->
-            <div class="control-panel">
-                <h4>
-                    <i class="fas fa-sliders-h"></i>
-                    Panel Kontrol Pompa
-                </h4>
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center">
-                            <span class="me-4 fw-bold" style="color: #1e2b4a; font-size: 1.2rem;">Status Pompa:</span>
-                            <span id="pump-status" class="badge bg-secondary status-badge">
-                                <span class="spinner me-2"></span>
-                                Loading...
-                            </span>
-                        </div>
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h3>
+                <i class="fas fa-sliders-h"></i>
+                Panel Kontrol Pompa
+            </h3>
+            <div class="pump-status">
+                <div>
+                    <span class="fw-bold me-3">Status Pompa:</span>
+                    <span id="pump-status" class="badge bg-secondary status-badge">
+                        <i class="fas fa-circle-notch fa-spin me-2"></i>
+                        Loading...
+                    </span>
+                </div>
+                <div>
+                    <button id="btn-toggle-pump" class="btn-control btn-primary" onclick="togglePump()">
+                        <i class="fas fa-power-off me-2"></i>
+                        Loading...
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baris 1: Tegangan, Arus, Daya, Frekuensi -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-bolt"></i>
                     </div>
-                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                        <button id="btn-toggle-pump" class="btn-control" onclick="togglePump()">
-                            <i class="fas fa-power-off me-2"></i>
-                            Loading...
-                        </button>
+                    <div class="metric-label">TEGANGAN</div>
+                    <div class="metric-value" id="voltage">0</div>
+                    <div class="metric-unit">Volt (V)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div class="metric-label">ARUS</div>
+                    <div class="metric-value" id="current">0</div>
+                    <div class="metric-unit">Ampere (A)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="metric-label">DAYA</div>
+                    <div class="metric-value" id="power">0</div>
+                    <div class="metric-unit">Watt (W)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="metric-label">FREKUENSI</div>
+                    <div class="metric-value" id="frequency">0</div>
+                    <div class="metric-unit">Hertz (Hz)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baris 2: Power Factor, Energi Total, Energi Terpakai -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-adjust"></i>
+                    </div>
+                    <div class="metric-label">POWER FACTOR</div>
+                    <div class="metric-value" id="pf">0</div>
+                    <div class="metric-unit">Cos φ</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-battery-full"></i>
+                    </div>
+                    <div class="metric-label">ENERGI TOTAL</div>
+                    <div class="metric-value" id="energy_total">0</div>
+                    <div class="metric-unit">kWh</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-battery-half"></i>
+                    </div>
+                    <div class="metric-label">ENERGI TERPAKAI</div>
+                    <div class="metric-value" id="energy_used">0</div>
+                    <div class="metric-unit">kWh</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baris 3: Biaya -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="cost-card border-warning">
+                    <div class="cost-label">
+                        <i class="fas fa-clock text-warning"></i>
+                        Biaya per Jam
+                    </div>
+                    <div class="cost-value text-warning" id="biaya_per_jam">Rp 0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cost-card border-success">
+                    <div class="cost-label">
+                        <i class="fas fa-calendar-day text-success"></i>
+                        Biaya per Hari
+                    </div>
+                    <div class="cost-value text-success" id="biaya_per_hari">Rp 0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cost-card border-info">
+                    <div class="cost-label">
+                        <i class="fas fa-calendar-alt text-info"></i>
+                        Biaya per Bulan
+                    </div>
+                    <div class="cost-value text-info" id="biaya_per_bulan">Rp 0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cost-card border-danger">
+                    <div class="cost-label">
+                        <i class="fas fa-money-bill-wave text-danger"></i>
+                        Biaya Total
+                    </div>
+                    <div class="cost-value text-danger" id="biaya_total">Rp 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baris 4: Grafik dan History -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4>
+                        <i class="fas fa-chart-line"></i>
+                        Grafik Daya Real-time
+                    </h4>
+                    <div class="chart-container">
+                        <canvas id="powerChart"></canvas>
                     </div>
                 </div>
             </div>
-
-            <!-- Baris 1: Tegangan, Arus, Daya, Frekuensi -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div class="metric-label">TEGANGAN</div>
-                        <div class="metric-value" id="voltage">0</div>
-                        <div class="metric-unit">Volt (V)</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-wave-square"></i>
-                        </div>
-                        <div class="metric-label">ARUS</div>
-                        <div class="metric-value" id="current">0</div>
-                        <div class="metric-unit">Ampere (A)</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="metric-label">DAYA</div>
-                        <div class="metric-value" id="power">0</div>
-                        <div class="metric-unit">Watt (W)</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="metric-label">FREKUENSI</div>
-                        <div class="metric-value" id="frequency">0</div>
-                        <div class="metric-unit">Hertz (Hz)</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Baris 2: Power Factor, Energi Total, Energi Terpakai -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-adjust"></i>
-                        </div>
-                        <div class="metric-label">POWER FACTOR</div>
-                        <div class="metric-value" id="pf">0</div>
-                        <div class="metric-unit">Cos φ</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-battery-full"></i>
-                        </div>
-                        <div class="metric-label">ENERGI TOTAL</div>
-                        <div class="metric-value" id="energy_total">0</div>
-                        <div class="metric-unit">kWh</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-battery-half"></i>
-                        </div>
-                        <div class="metric-label">ENERGI TERPAKAI</div>
-                        <div class="metric-value" id="energy_used">0</div>
-                        <div class="metric-unit">kWh</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Baris 3: Informasi Biaya -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="cost-card border-warning">
-                        <div class="cost-label">
-                            <i class="fas fa-clock text-warning"></i>
-                            Biaya per Jam
-                        </div>
-                        <div class="cost-value text-warning" id="biaya_per_jam">Rp 0</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="cost-card border-success">
-                        <div class="cost-label">
-                            <i class="fas fa-calendar-day text-success"></i>
-                            Biaya per Hari
-                        </div>
-                        <div class="cost-value text-success" id="biaya_per_hari">Rp 0</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="cost-card border-info">
-                        <div class="cost-label">
-                            <i class="fas fa-calendar-alt text-info"></i>
-                            Biaya per Bulan
-                        </div>
-                        <div class="cost-value text-info" id="biaya_per_bulan">Rp 0</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="cost-card border-danger">
-                        <div class="cost-label">
-                            <i class="fas fa-money-bill-wave text-danger"></i>
-                            Biaya Total
-                        </div>
-                        <div class="cost-value text-danger" id="biaya_total">Rp 0</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Baris 4: Grafik dan History -->
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="chart-card">
-                        <h5>
-                            <i class="fas fa-chart-line"></i>
-                            Grafik Daya Real-time
-                        </h5>
-                        <div class="chart-container">
-                            <canvas id="powerChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="history-card">
-                        <h5>
-                            <i class="fas fa-history"></i>
-                            Histori Monitoring
-                        </h5>
-                        <div class="table-responsive" style="max-height: 380px;">
-                            <table class="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Waktu</th>
-                                        <th>Tegangan</th>
-                                        <th>Arus</th>
-                                        <th>Daya</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-table">
-                                    <tr>
-                                        <td colspan="4" class="text-center">Loading...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Baris 5: Waktu Update -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="text-center text-muted" id="lastUpdate">
-                        <i class="fas fa-sync-alt me-2"></i>
-                        Last update: -
+            <div class="col-md-6">
+                <div class="history-card">
+                    <h4>
+                        <i class="fas fa-history"></i>
+                        Histori Monitoring
+                    </h4>
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>WAKTU</th>
+                                    <th>TEGANGAN</th>
+                                    <th>ARUS</th>
+                                    <th>DAYA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table">
+                                <tr>
+                                    <td colspan="4" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Firebase configuration
@@ -682,299 +518,186 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const database = firebase.database();
 
-        // Connection status
-        const connectionStatus = document.getElementById('connectionStatus');
-        database.ref('.info/connected').on('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                connectionStatus.className = 'connection-status connected';
-                connectionStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>Connected to Firebase';
-                setTimeout(() => {
-                    connectionStatus.style.opacity = '0';
-                    setTimeout(() => {
-                        connectionStatus.style.display = 'none';
-                    }, 1000);
-                }, 3000);
-            } else {
-                connectionStatus.className = 'connection-status disconnected';
-                connectionStatus.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Disconnected';
-                connectionStatus.style.display = 'block';
-                connectionStatus.style.opacity = '1';
-            }
-        });
+        // Update waktu
+        function updateTime() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentTime').innerHTML = 
+                `<i class="fas fa-clock"></i> ${now.toLocaleString('id-ID', options)}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
 
-        // Check authentication
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'index.html';
-            } else {
-                loadDashboard(user);
-            }
-        });
-
-        function loadDashboard(user) {
-            // Display user info
-            document.getElementById('userEmail').textContent = user.email;
-            
-            const userRole = sessionStorage.getItem('userRole') || 'user';
-            if (userRole === 'admin') {
-                document.getElementById('userRole').textContent = 'Admin';
-            } else {
-                document.getElementById('userRole').style.display = 'none';
-            }
-
-            // Initialize chart
-            const ctx = document.getElementById('powerChart').getContext('2d');
-            const powerChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Daya (W)',
-                        data: [],
-                        borderColor: '#4a69bd',
-                        backgroundColor: 'rgba(74, 105, 189, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true,
-                        pointBackgroundColor: '#1e2b4a',
-                        pointBorderColor: 'white',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Daya: ${context.raw.toFixed(1)} W`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.03)'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Daya (Watt)',
-                                color: '#7f8c8d'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toFixed(1);
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            title: {
-                                display: true,
-                                text: 'Waktu',
-                                color: '#7f8c8d'
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Update time
-            function updateTime() {
-                const now = new Date();
-                const options = { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                };
-                document.getElementById('current-time').innerHTML = 
-                    `<i class="fas fa-clock me-2"></i>${now.toLocaleDateString('id-ID', options)}`;
-            }
-            setInterval(updateTime, 1000);
-            updateTime();
-
-            // Format currency with proper handling for negative values
-            function formatCurrency(value) {
-                if (value === undefined || value === null) return 'Rp 0';
-                
-                const formatter = new Intl.NumberFormat('id-ID', { 
-                    style: 'currency', 
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                });
-                
-                // Handle negative values
-                if (value < 0) {
-                    return '- ' + formatter.format(Math.abs(value));
-                }
-                return formatter.format(value);
-            }
-
-            // Format number with specified decimal places
-            function formatNumber(value, decimals = 2) {
-                if (value === undefined || value === null) return '0';
-                return Number(value).toFixed(decimals);
-            }
-
-            // Update last update time
-            function updateLastUpdate(time) {
-                document.getElementById('lastUpdate').innerHTML = 
-                    `<i class="fas fa-sync-alt me-2"></i>Last update: ${time || new Date().toLocaleString('id-ID')}`;
-            }
-
-            // LISTEN FOR LIVE DATA - monitoring/history/live
-            const liveRef = database.ref('monitoring/history/live');
-            liveRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                console.log('Live data received:', data);
-                
-                if (data) {
-                    // Update semua field dengan format yang sesuai
-                    document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
-                    document.getElementById('current').textContent = formatNumber(data.current, 2);
-                    document.getElementById('power').textContent = formatNumber(data.power, 1);
-                    document.getElementById('frequency').textContent = formatNumber(data.frequency, 0);
-                    document.getElementById('pf').textContent = formatNumber(data.pf, 2);
-                    document.getElementById('energy_total').textContent = formatNumber(data.energy_total, 2);
-                    document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
-                    
-                    document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam);
-                    document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari);
-                    document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
-                    document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
-
-                    // Update last update time
-                    updateLastUpdate(data.time);
-
-                    // Update chart
-                    const now = new Date();
-                    const timeLabel = now.toLocaleTimeString();
-                    
-                    if (powerChart.data.labels.length > 15) {
-                        powerChart.data.labels.shift();
-                        powerChart.data.datasets[0].data.shift();
-                    }
-                    
-                    powerChart.data.labels.push(timeLabel);
-                    powerChart.data.datasets[0].data.push(data.power || 0);
-                    powerChart.update();
-                } else {
-                    console.log('No live data available');
-                }
-            });
-
-            // LISTEN FOR PUMP CONTROL - monitoring/control/pompa
-            const pumpRef = database.ref('monitoring/control/pompa');
-            pumpRef.on('value', (snapshot) => {
-                const status = snapshot.val();
-                const pumpStatus = document.getElementById('pump-status');
-                const toggleBtn = document.getElementById('btn-toggle-pump');
-                
-                if (status === true) {
-                    pumpStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>AKTIF';
-                    pumpStatus.className = 'badge bg-success status-badge';
-                    toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
-                    toggleBtn.className = 'btn-control btn-control-danger';
-                } else if (status === false) {
-                    pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
-                    pumpStatus.className = 'badge bg-secondary status-badge';
-                    toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
-                    toggleBtn.className = 'btn-control btn-control-success';
-                } else {
-                    pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
-                    pumpStatus.className = 'badge bg-warning status-badge';
-                }
-            });
-
-            // LOAD HISTORY DATA - monitoring/history (filter out 'live')
-            const historyRef = database.ref('monitoring/history');
-            historyRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                console.log('History data received:', data);
-                
-                const tbody = document.getElementById('history-table');
-                
-                if (data) {
-                    // Filter out 'live' node and get all other entries
-                    const historyArray = Object.entries(data)
-                        .filter(([key, value]) => key !== 'live' && value && value.time)
-                        .sort((a, b) => {
-                            // Sort by time descending (newest first)
-                            const timeA = a[1].time || '';
-                            const timeB = b[1].time || '';
-                            return timeB.localeCompare(timeA);
-                        })
-                        .slice(0, 8); // Show last 8 entries
-                    
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.time || '-'}</td>
-                                <td>${formatNumber(value.voltage, 1)} V</td>
-                                <td>${formatNumber(value.current, 2)} A</td>
-                                <td>${formatNumber(value.power, 1)} W</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Tidak ada data history</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Tidak ada data history</td></tr>';
-                }
-            });
-
-            // Load user data
-            database.ref('users/' + user.uid).once('value', (snapshot) => {
-                const userData = snapshot.val();
-                if (userData && userData.role === 'admin') {
-                    document.getElementById('userRole').textContent = 'Admin';
-                    document.getElementById('userRole').style.display = 'inline-block';
-                }
-            });
+        // Format number
+        function formatNumber(value, decimals = 1) {
+            if (value === undefined || value === null) return '0';
+            return Number(value).toFixed(decimals);
         }
 
-        // Toggle pump function
+        // Format currency
+        function formatCurrency(value) {
+            if (value === undefined || value === null) return 'Rp 0';
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Chart initialization
+        const ctx = document.getElementById('powerChart').getContext('2d');
+        const powerChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Daya (W)',
+                    data: [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // AMBIL DATA LIVE - Path yang benar dari history
+        const historyRef = database.ref('monitoring/history');
+        historyRef.limitToLast(1).on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            console.log('Data terbaru:', data);
+            
+            if (data) {
+                // Update semua field
+                document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
+                document.getElementById('current').textContent = formatNumber(data.current, 2);
+                document.getElementById('power').textContent = formatNumber(data.power, 1);
+                document.getElementById('frequency').textContent = formatNumber(data.frequency, 0);
+                document.getElementById('pf').textContent = formatNumber(data.pf, 2);
+                document.getElementById('energy_total').textContent = formatNumber(data.energy_total, 2);
+                document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
+                
+                document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam);
+                document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari);
+                document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
+                document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
+
+                // Update chart
+                const timeLabel = data.time || new Date().toLocaleTimeString();
+                
+                if (powerChart.data.labels.length > 20) {
+                    powerChart.data.labels.shift();
+                    powerChart.data.datasets[0].data.shift();
+                }
+                
+                powerChart.data.labels.push(timeLabel);
+                powerChart.data.datasets[0].data.push(data.power || 0);
+                powerChart.update();
+            }
+        });
+
+        // Ambil history untuk tabel
+        historyRef.limitToLast(10).on('value', (snapshot) => {
+            const data = snapshot.val();
+            const tbody = document.getElementById('history-table');
+            
+            if (data) {
+                const historyArray = Object.entries(data)
+                    .sort((a, b) => {
+                        const timeA = a[1].time || '';
+                        const timeB = b[1].time || '';
+                        return timeB.localeCompare(timeA);
+                    })
+                    .slice(0, 10);
+                
+                let html = '';
+                historyArray.forEach(([key, value]) => {
+                    html += `<tr>
+                        <td>${value.time || '-'}</td>
+                        <td>${formatNumber(value.voltage, 1)} V</td>
+                        <td>${formatNumber(value.current, 2)} A</td>
+                        <td>${formatNumber(value.power, 1)} W</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
+            }
+        });
+
+        // Control pompa
+        const pumpRef = database.ref('monitoring/control/pompa');
+        pumpRef.on('value', (snapshot) => {
+            const status = snapshot.val();
+            const pumpStatus = document.getElementById('pump-status');
+            const toggleBtn = document.getElementById('btn-toggle-pump');
+            
+            if (status === true) {
+                pumpStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>AKTIF';
+                pumpStatus.className = 'badge bg-success status-badge';
+                toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
+                toggleBtn.className = 'btn-control btn-danger';
+            } else {
+                pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
+                pumpStatus.className = 'badge bg-secondary status-badge';
+                toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
+                toggleBtn.className = 'btn-control btn-primary';
+            }
+        });
+
+        // Toggle pump
         window.togglePump = function() {
-            const pumpRef = database.ref('monitoring/control/pompa');
             pumpRef.transaction((currentStatus) => {
                 return !currentStatus;
-            }).then(() => {
-                console.log('Pump toggled successfully');
-            }).catch((error) => {
-                console.error('Error toggling pump:', error);
-                alert('Gagal mengubah status pompa. Silakan coba lagi.');
             });
         };
 
-        // Logout function
-        window.logout = function() {
-            auth.signOut().then(() => {
-                sessionStorage.clear();
-                window.location.href = 'index.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        };
+        // Connection status
+        database.ref('.info/connected').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                console.log('✅ Connected to Firebase');
+            } else {
+                console.log('❌ Disconnected from Firebase');
+            }
+        });
     </script>
 </body>
 </html>
