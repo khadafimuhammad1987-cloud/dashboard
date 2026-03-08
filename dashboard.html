@@ -721,7 +721,7 @@
             });
 
             // LOAD HISTORY DATA - PERBAIKAN PATH
-            const historyRef = database.ref('monitoring/history');
+            const historyRef = database.ref('monitoring/live');
             historyRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 console.log('History data received:', data); // Debugging
@@ -801,4 +801,5 @@
     </script>
 </body>
 </html>
+
 
