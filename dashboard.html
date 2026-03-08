@@ -1150,6 +1150,13 @@
                 return Number(value).toFixed(decimals);
             }
 
+            // Helper function untuk mendapatkan nama bulan
+            function getNamaBulan(bulan) {
+                const bulanArray = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                return bulanArray[bulan - 1] || 'Unknown';
+            }
+
             // ===== LISTEN FOR LIVE DATA =====
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
@@ -1260,32 +1267,48 @@
                 }
             });
 
-            // ===== LOAD HOURLY HISTORY =====
+            // ===== LOAD HOURLY HISTORY DENGAN SORTING YANG BENAR =====
             const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
             hourlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('hourly-history-table');
                 
                 if (data) {
-                    const historyArray = Object.entries(data)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => {
-                            if (a.periode && b.periode) {
-                                return b.periode.localeCompare(a.periode);
-                            }
-                            return b.key.localeCompare(a.key);
-                        })
-                        .slice(0, 50);
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
                     
-                    if (historyArray.length > 0) {
+                    // SORTING berdasarkan key (YYYY-MM-DD_HH)
+                    historyArray.sort((a, b) => {
+                        return b.key.localeCompare(a.key); // Descending
+                    });
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
                         let html = '';
-                        historyArray.forEach(item => {
+                        top50.forEach(item => {
+                            // Ekstrak tanggal dan jam dari key
+                            const keyParts = item.key.split('_');
+                            const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
+                            const jamKey = keyParts[1] || '00';
+                            
+                            // Konversi tanggal ke format DD-MM-YYYY
+                            const [tahun, bulan, hari] = tanggalKey.split('-');
+                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                            
+                            // Gunakan data dari Firebase jika ada, atau dari key
+                            const tanggal = item.tanggal || tanggalFormatted;
+                            const jam = item.jam !== undefined ? 
+                                (typeof item.jam === 'number' ? item.jam.toString().padStart(2, '0') : item.jam) : 
+                                jamKey.padStart(2, '0');
+                            
                             html += `<tr>
-                                <td>${item.tanggal || '-'}</td>
-                                <td>${item.jam || '-'}:00</td>
+                                <td>${tanggal}</td>
+                                <td>${jam}:00</td>
                                 <td>${formatNumber(item.total_energi, 3)} kWh</td>
                                 <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
                                 <td>${formatCurrency(item.total_biaya)}</td>
@@ -1300,31 +1323,34 @@
                 }
             });
 
-            // ===== LOAD DAILY HISTORY =====
+            // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
             const dailyRef = database.ref('monitoring/monitoring/history_daily');
             dailyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('daily-history-table');
                 
                 if (data) {
-                    const historyArray = Object.entries(data)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => {
-                            if (a.periode && b.periode) {
-                                return b.periode.localeCompare(a.periode);
-                            }
-                            return b.key.localeCompare(a.key);
-                        })
-                        .slice(0, 50);
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
                     
-                    if (historyArray.length > 0) {
+                    // SORTING berdasarkan key (YYYY-MM-DD)
+                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
                         let html = '';
-                        historyArray.forEach(item => {
+                        top50.forEach(item => {
+                            // Konversi key ke format tanggal
+                            const [tahun, bulan, hari] = item.key.split('-');
+                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                            
                             html += `<tr>
-                                <td>${item.tanggal || item.key}</td>
+                                <td>${item.tanggal || tanggalFormatted}</td>
                                 <td>${formatNumber(item.total_energi, 3)} kWh</td>
                                 <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
                                 <td>${formatCurrency(item.total_biaya)}</td>
@@ -1339,35 +1365,37 @@
                 }
             });
 
-            // ===== LOAD MONTHLY HISTORY =====
+            // ===== LOAD MONTHLY HISTORY DENGAN SORTING YANG BENAR =====
             const monthlyRef = database.ref('monitoring/monitoring/history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('monthly-history-table');
                 
                 if (data) {
-                    const historyArray = Object.entries(data)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => {
-                            if (a.tahun && b.tahun) {
-                                if (a.tahun !== b.tahun) {
-                                    return b.tahun - a.tahun;
-                                }
-                                return b.bulan - a.bulan;
-                            }
-                            return b.key.localeCompare(a.key);
-                        })
-                        .slice(0, 50);
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
                     
-                    if (historyArray.length > 0) {
+                    // SORTING berdasarkan key (YYYY-MM)
+                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
                         let html = '';
-                        historyArray.forEach(item => {
+                        top50.forEach(item => {
+                            // Ekstrak tahun dan bulan dari key
+                            const [tahun, bulan] = item.key.split('-');
+                            
+                            // Nama bulan dalam Bahasa Indonesia
+                            const namaBulan = getNamaBulan(parseInt(bulan));
+                            
                             html += `<tr>
-                                <td>${item.nama_bulan || '-'}</td>
-                                <td>${item.tahun || '-'}</td>
+                                <td>${item.nama_bulan || namaBulan}</td>
+                                <td>${item.tahun || tahun}</td>
                                 <td>${formatNumber(item.total_energi, 3)} kWh</td>
                                 <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
                                 <td>${formatCurrency(item.total_biaya)}</td>
@@ -1453,4 +1481,3 @@
     </script>
 </body>
 </html>
-
