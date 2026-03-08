@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
     <style>
         * {
             margin: 0;
@@ -520,6 +522,30 @@
             background: #f8fafc;
         }
 
+        /* DataTables Custom */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 5px 10px;
+            margin: 0 3px;
+            border: 1px solid #eef2f6;
+            border-radius: 5px;
+            background: white;
+            color: #2c3e50 !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #3498db;
+            color: white !important;
+            border-color: #3498db;
+        }
+
         /* Loading Spinner */
         .spinner {
             display: inline-block;
@@ -655,7 +681,7 @@
             </div>
         </div>
 
-        <!-- Dashboard Section (Default View) -->
+        <!-- Dashboard Section -->
         <div id="dashboard-section">
             <!-- Control Panel -->
             <div class="control-card">
@@ -844,8 +870,8 @@
                     <h5><i class="fas fa-clock"></i> Riwayat Real-time (50 data terakhir)</h5>
                     <span class="badge">Update real-time</span>
                 </div>
-                <div class="table-responsive" style="max-height: 500px;">
-                    <table class="history-table">
+                <div class="table-responsive">
+                    <table id="realtimeTable" class="history-table display" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Waktu</th>
@@ -871,11 +897,11 @@
         <div id="hourly-section" style="display: none;">
             <div class="history-card active">
                 <div class="history-header">
-                    <h5><i class="fas fa-hourglass-half"></i> Riwayat Per Jam (50 data terakhir)</h5>
+                    <h5><i class="fas fa-hourglass-half"></i> Riwayat Per Jam</h5>
                     <span class="badge">Agregasi per jam</span>
                 </div>
-                <div class="table-responsive" style="max-height: 500px;">
-                    <table class="history-table">
+                <div class="table-responsive">
+                    <table id="hourlyTable" class="history-table display" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Tanggal</th>
@@ -899,11 +925,11 @@
         <div id="daily-section" style="display: none;">
             <div class="history-card active">
                 <div class="history-header">
-                    <h5><i class="fas fa-calendar-day"></i> Riwayat Per Hari (50 data terakhir)</h5>
+                    <h5><i class="fas fa-calendar-day"></i> Riwayat Per Hari</h5>
                     <span class="badge">Agregasi per hari</span>
                 </div>
-                <div class="table-responsive" style="max-height: 500px;">
-                    <table class="history-table">
+                <div class="table-responsive">
+                    <table id="dailyTable" class="history-table display" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Tanggal</th>
@@ -926,11 +952,11 @@
         <div id="monthly-section" style="display: none;">
             <div class="history-card active">
                 <div class="history-header">
-                    <h5><i class="fas fa-calendar-alt"></i> Riwayat Per Bulan (50 data terakhir)</h5>
+                    <h5><i class="fas fa-calendar-alt"></i> Riwayat Per Bulan</h5>
                     <span class="badge">Agregasi per bulan</span>
                 </div>
-                <div class="table-responsive" style="max-height: 500px;">
-                    <table class="history-table">
+                <div class="table-responsive">
+                    <table id="monthlyTable" class="history-table display" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Bulan</th>
@@ -981,8 +1007,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
         // Firebase configuration
@@ -1002,39 +1033,73 @@
         const database = firebase.database();
 
         // ALLOWED UIDs
-        const ALLOWED_UIDS = [
-            '7wrnhaDpsLRmPXPo9nV9ICSpY582'
-        ];
+        const ALLOWED_UIDS = ['7wrnhaDpsLRmPXPo9nV9ICSpY582'];
+
+        // DataTables instances
+        let realtimeTable, hourlyTable, dailyTable, monthlyTable;
 
         // Check authentication
         auth.onAuthStateChanged((user) => {
             if (!user) {
-                console.log('No user, redirecting to login');
                 window.location.href = 'index.html';
             } else if (!ALLOWED_UIDS.includes(user.uid)) {
-                console.log('Unauthorized user:', user.uid);
                 auth.signOut().then(() => {
                     window.location.href = 'index.html';
                 });
             } else {
-                console.log('Authorized user:', user.uid);
                 loadDashboard(user);
             }
         });
 
         function loadDashboard(user) {
-            // Display user info
-            const userEmail = user.email || 'Admin';
-            document.getElementById('userEmail').textContent = userEmail.split('@')[0];
+            document.getElementById('userEmail').textContent = user.email.split('@')[0];
             
             const userRole = sessionStorage.getItem('userRole') || 'admin';
             document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userRole}`;
+
+            // Initialize DataTables
+            setTimeout(() => {
+                try {
+                    if ($('#realtimeTable').length) {
+                        realtimeTable = $('#realtimeTable').DataTable({
+                            pageLength: 25,
+                            order: [[0, 'desc']],
+                            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' }
+                        });
+                    }
+
+                    if ($('#hourlyTable').length) {
+                        hourlyTable = $('#hourlyTable').DataTable({
+                            pageLength: 25,
+                            order: [[0, 'desc'], [1, 'desc']],
+                            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' }
+                        });
+                    }
+
+                    if ($('#dailyTable').length) {
+                        dailyTable = $('#dailyTable').DataTable({
+                            pageLength: 25,
+                            order: [[0, 'desc']],
+                            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' }
+                        });
+                    }
+
+                    if ($('#monthlyTable').length) {
+                        monthlyTable = $('#monthlyTable').DataTable({
+                            pageLength: 25,
+                            order: [[1, 'desc'], [0, 'desc']],
+                            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' }
+                        });
+                    }
+                } catch (e) {
+                    console.log('DataTables init error:', e);
+                }
+            }, 1000);
 
             // Initialize Charts
             const ctx1 = document.getElementById('powerChart').getContext('2d');
             const ctx2 = document.getElementById('distributionChart').getContext('2d');
 
-            // Power Chart
             const powerChart = new Chart(ctx1, {
                 type: 'line',
                 data: {
@@ -1084,7 +1149,6 @@
                 }
             });
 
-            // Distribution Chart
             const distributionChart = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
@@ -1184,7 +1248,6 @@
                         biayaTotal.classList.remove('negative');
                     }
 
-                    // Update power chart
                     const timeLabel = data.time ? data.time.split(' ')[1] : new Date().toLocaleTimeString();
                     
                     if (powerChart.data.labels.length > 20) {
@@ -1196,7 +1259,6 @@
                     powerChart.data.datasets[0].data.push(data.power || 0);
                     powerChart.update();
 
-                    // Update distribution chart
                     if (data.pf) {
                         const active = data.pf * 100;
                         const reactive = 100 - active;
@@ -1232,121 +1294,109 @@
                 const data = snapshot.val();
                 const tbody = document.getElementById('realtime-history-table');
                 
-                if (data) {
+                if (data && realtimeTable) {
                     const historyArray = Object.entries(data)
                         .filter(([key]) => key !== 'live' && key.length > 0)
-                        .sort((a, b) => b[0].localeCompare(a[0]))
-                        .slice(0, 50);
+                        .sort((a, b) => b[0].localeCompare(a[0]));
                     
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.time || key}</td>
-                                <td>${formatNumber(value.voltage, 1)} V</td>
-                                <td>${formatNumber(value.current, 2)} A</td>
-                                <td>${formatNumber(value.power, 1)} W</td>
-                                <td>${formatNumber(value.frequency, 0)} Hz</td>
-                                <td>${formatNumber(value.pf, 2)}</td>
-                                <td>${formatCurrency(value.biaya_per_jam)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
-                    }
+                    realtimeTable.clear();
+                    
+                    historyArray.forEach(([key, value]) => {
+                        realtimeTable.row.add([
+                            value.time || key,
+                            formatNumber(value.voltage, 1),
+                            formatNumber(value.current, 2),
+                            formatNumber(value.power, 1),
+                            formatNumber(value.frequency, 0),
+                            formatNumber(value.pf, 2),
+                            formatCurrency(value.biaya_per_jam)
+                        ]);
+                    });
+                    
+                    realtimeTable.draw();
                 }
             });
 
             // ===== LOAD HOURLY HISTORY =====
-            const hourlyRef = database.ref('monitoring/history_hourly');
+            const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
             hourlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('hourly-history-table');
                 
-                if (data) {
+                if (data && hourlyTable) {
                     const historyArray = Object.entries(data)
-                        .sort((a, b) => b[0].localeCompare(a[0]))
-                        .slice(0, 50);
+                        .sort((a, b) => b[0].localeCompare(a[0]));
                     
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.tanggal || '-'}</td>
-                                <td>${value.jam || '-'}:00</td>
-                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(value.rata_rata_daya, 1)} W</td>
-                                <td>${formatCurrency(value.total_biaya)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
-                    }
+                    hourlyTable.clear();
+                    
+                    historyArray.forEach(([key, value]) => {
+                        hourlyTable.row.add([
+                            value.tanggal || '-',
+                            value.jam + ':00',
+                            formatNumber(value.total_energi, 3),
+                            formatNumber(value.rata_rata_daya, 1),
+                            formatCurrency(value.total_biaya)
+                        ]);
+                    });
+                    
+                    hourlyTable.draw();
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
                 }
             });
 
             // ===== LOAD DAILY HISTORY =====
-            const dailyRef = database.ref('monitoring/history_daily');
+            const dailyRef = database.ref('monitoring/monitoring/history_daily');
             dailyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('daily-history-table');
                 
-                if (data) {
+                if (data && dailyTable) {
                     const historyArray = Object.entries(data)
-                        .sort((a, b) => b[0].localeCompare(a[0]))
-                        .slice(0, 50);
+                        .sort((a, b) => b[0].localeCompare(a[0]));
                     
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.tanggal || key}</td>
-                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(value.rata_rata_harian, 1)} W</td>
-                                <td>${formatCurrency(value.total_biaya)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
-                    }
+                    dailyTable.clear();
+                    
+                    historyArray.forEach(([key, value]) => {
+                        dailyTable.row.add([
+                            value.tanggal || key,
+                            formatNumber(value.total_energi, 3),
+                            formatNumber(value.rata_rata_harian, 1),
+                            formatCurrency(value.total_biaya)
+                        ]);
+                    });
+                    
+                    dailyTable.draw();
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
                 }
             });
 
             // ===== LOAD MONTHLY HISTORY =====
-            const monthlyRef = database.ref('monitoring/history_monthly');
+            const monthlyRef = database.ref('monitoring/monitoring/history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('monthly-history-table');
                 
-                if (data) {
+                if (data && monthlyTable) {
                     const historyArray = Object.entries(data)
-                        .sort((a, b) => b[0].localeCompare(a[0]))
-                        .slice(0, 50);
+                        .sort((a, b) => b[0].localeCompare(a[0]));
                     
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.nama_bulan || '-'}</td>
-                                <td>${value.tahun || '-'}</td>
-                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(value.rata_rata_harian, 1)} W</td>
-                                <td>${formatCurrency(value.total_biaya)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
-                    }
+                    monthlyTable.clear();
+                    
+                    historyArray.forEach(([key, value]) => {
+                        monthlyTable.row.add([
+                            value.nama_bulan || '-',
+                            value.tahun || '-',
+                            formatNumber(value.total_energi, 3),
+                            formatNumber(value.rata_rata_harian, 1),
+                            formatCurrency(value.total_biaya)
+                        ]);
+                    });
+                    
+                    monthlyTable.draw();
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
                 }
             });
 
@@ -1364,6 +1414,14 @@
                     statusDiv.innerHTML = '<i class="fas fa-circle" style="color: #e74c3c;"></i><span>Terputus dari server</span>';
                 }
             });
+
+            // Load user data
+            database.ref('users/' + user.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData && userData.role) {
+                    document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userData.role}`;
+                }
+            });
         }
 
         // Section navigation
@@ -1371,7 +1429,6 @@
             document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
             event.target.closest('li').classList.add('active');
             
-            // Hide all sections
             document.getElementById('dashboard-section').style.display = 'none';
             document.getElementById('realtime-section').style.display = 'none';
             document.getElementById('hourly-section').style.display = 'none';
@@ -1379,26 +1436,17 @@
             document.getElementById('monthly-section').style.display = 'none';
             document.getElementById('settings-section').style.display = 'none';
             
-            // Show selected section
-            if (section === 'dashboard') {
-                document.getElementById('dashboard-section').style.display = 'block';
-                document.getElementById('pageTitle').textContent = 'Dashboard Overview';
-            } else if (section === 'realtime') {
-                document.getElementById('realtime-section').style.display = 'block';
-                document.getElementById('pageTitle').textContent = 'Riwayat Real-time';
-            } else if (section === 'hourly') {
-                document.getElementById('hourly-section').style.display = 'block';
-                document.getElementById('pageTitle').textContent = 'Riwayat Per Jam';
-            } else if (section === 'daily') {
-                document.getElementById('daily-section').style.display = 'block';
-                document.getElementById('pageTitle').textContent = 'Riwayat Per Hari';
-            } else if (section === 'monthly') {
-                document.getElementById('monthly-section').style.display = 'block';
-                document.getElementById('pageTitle').textContent = 'Riwayat Per Bulan';
-            } else if (section === 'settings') {
-                document.getElementById('settings-section').style.display = 'block';
-                document.getElementById('pageTitle').textContent = 'Pengaturan';
-            }
+            document.getElementById(`${section}-section`).style.display = 'block';
+            
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'realtime': 'Riwayat Real-time',
+                'hourly': 'Riwayat Per Jam',
+                'daily': 'Riwayat Per Hari',
+                'monthly': 'Riwayat Per Bulan',
+                'settings': 'Pengaturan'
+            };
+            document.getElementById('pageTitle').textContent = titles[section];
         };
 
         // Toggle pump
@@ -1411,7 +1459,6 @@
         window.updateTarif = function() {
             const tarif = document.getElementById('tarifSetting').value;
             alert('Pengaturan disimpan (Rp ' + tarif + '/kWh)');
-            // Implementasi update tarif ke database jika diperlukan
         };
 
         // Logout
