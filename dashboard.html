@@ -302,6 +302,14 @@
                 text-align: center;
             }
         }
+
+        /* Data Path Info */
+        .path-info {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 5px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -351,6 +359,7 @@
                     <div class="metric-label">TEGANGAN</div>
                     <div class="metric-value" id="voltage">0</div>
                     <div class="metric-unit">Volt (V)</div>
+                    <div class="path-info">monitoring/history/[key]/voltage</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -361,6 +370,7 @@
                     <div class="metric-label">ARUS</div>
                     <div class="metric-value" id="current">0</div>
                     <div class="metric-unit">Ampere (A)</div>
+                    <div class="path-info">monitoring/history/[key]/current</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -371,6 +381,7 @@
                     <div class="metric-label">DAYA</div>
                     <div class="metric-value" id="power">0</div>
                     <div class="metric-unit">Watt (W)</div>
+                    <div class="path-info">monitoring/history/[key]/power</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -381,6 +392,7 @@
                     <div class="metric-label">FREKUENSI</div>
                     <div class="metric-value" id="frequency">0</div>
                     <div class="metric-unit">Hertz (Hz)</div>
+                    <div class="path-info">monitoring/history/[key]/frequency</div>
                 </div>
             </div>
         </div>
@@ -395,6 +407,7 @@
                     <div class="metric-label">POWER FACTOR</div>
                     <div class="metric-value" id="pf">0</div>
                     <div class="metric-unit">Cos φ</div>
+                    <div class="path-info">monitoring/history/[key]/pf</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -405,6 +418,7 @@
                     <div class="metric-label">ENERGI TOTAL</div>
                     <div class="metric-value" id="energy_total">0</div>
                     <div class="metric-unit">kWh</div>
+                    <div class="path-info">monitoring/history/[key]/energy_total</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -415,6 +429,7 @@
                     <div class="metric-label">ENERGI TERPAKAI</div>
                     <div class="metric-value" id="energy_used">0</div>
                     <div class="metric-unit">kWh</div>
+                    <div class="path-info">monitoring/history/[key]/energy_used</div>
                 </div>
             </div>
         </div>
@@ -428,6 +443,7 @@
                         Biaya per Jam
                     </div>
                     <div class="cost-value text-warning" id="biaya_per_jam">Rp 0</div>
+                    <div class="path-info">monitoring/history/[key]/biaya_per_jam</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -437,6 +453,7 @@
                         Biaya per Hari
                     </div>
                     <div class="cost-value text-success" id="biaya_per_hari">Rp 0</div>
+                    <div class="path-info">monitoring/history/[key]/biaya_per_hari</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -446,6 +463,7 @@
                         Biaya per Bulan
                     </div>
                     <div class="cost-value text-info" id="biaya_per_bulan">Rp 0</div>
+                    <div class="path-info">monitoring/history/[key]/biaya_per_bulan</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -455,6 +473,7 @@
                         Biaya Total
                     </div>
                     <div class="cost-value text-danger" id="biaya_total">Rp 0</div>
+                    <div class="path-info">monitoring/history/[key]/biaya_total</div>
                 </div>
             </div>
         </div>
@@ -599,14 +618,17 @@
             }
         });
 
-        // AMBIL DATA LIVE - Path yang benar dari history
+        // AMBIL DATA TERBARU DARI monitoring/history
         const historyRef = database.ref('monitoring/history');
-        historyRef.limitToLast(1).on('child_added', (snapshot) => {
+        
+        // Ambil data terbaru untuk ditampilkan di card
+        historyRef.orderByKey().limitToLast(1).on('child_added', (snapshot) => {
             const data = snapshot.val();
-            console.log('Data terbaru:', data);
+            const key = snapshot.key;
+            console.log('Data terbaru:', key, data);
             
             if (data) {
-                // Update semua field
+                // Update semua field dengan data dari history
                 document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
                 document.getElementById('current').textContent = formatNumber(data.current, 2);
                 document.getElementById('power').textContent = formatNumber(data.power, 1);
@@ -635,23 +657,23 @@
         });
 
         // Ambil history untuk tabel
-        historyRef.limitToLast(10).on('value', (snapshot) => {
+        historyRef.orderByKey().limitToLast(10).on('value', (snapshot) => {
             const data = snapshot.val();
             const tbody = document.getElementById('history-table');
             
             if (data) {
+                // Konversi object ke array dan sort descending (terbaru di atas)
                 const historyArray = Object.entries(data)
                     .sort((a, b) => {
-                        const timeA = a[1].time || '';
-                        const timeB = b[1].time || '';
-                        return timeB.localeCompare(timeA);
+                        // Sort by key (timestamp) descending
+                        return b[0].localeCompare(a[0]);
                     })
                     .slice(0, 10);
                 
                 let html = '';
                 historyArray.forEach(([key, value]) => {
                     html += `<tr>
-                        <td>${value.time || '-'}</td>
+                        <td>${value.time || key}</td>
                         <td>${formatNumber(value.voltage, 1)} V</td>
                         <td>${formatNumber(value.current, 2)} A</td>
                         <td>${formatNumber(value.power, 1)} W</td>
@@ -675,7 +697,7 @@
                 pumpStatus.className = 'badge bg-success status-badge';
                 toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
                 toggleBtn.className = 'btn-control btn-danger';
-            } else {
+            } else if (status === false) {
                 pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
                 pumpStatus.className = 'badge bg-secondary status-badge';
                 toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
@@ -697,6 +719,12 @@
             } else {
                 console.log('❌ Disconnected from Firebase');
             }
+        });
+
+        // Debug: Tampilkan semua data yang ada
+        historyRef.once('value').then((snapshot) => {
+            const data = snapshot.val();
+            console.log('Semua data history:', data);
         });
     </script>
 </body>
