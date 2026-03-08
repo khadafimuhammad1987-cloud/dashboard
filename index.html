@@ -167,29 +167,10 @@
             color: #3c3;
         }
         
-        .register-link {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-        
-        .register-link p {
-            color: #666;
-            margin-bottom: 0;
-        }
-        
-        .register-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        
-        .register-link a:hover {
-            color: #764ba2;
-            text-decoration: underline;
+        .alert-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b8daff;
+            color: #004085;
         }
         
         .spinner-border {
@@ -198,46 +179,36 @@
             margin-right: 8px;
         }
         
-        /* Modal Styles */
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-        }
-        
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 20px 20px 0 0;
-            padding: 20px 30px;
-        }
-        
-        .modal-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-        
-        .modal-body {
-            padding: 30px;
-        }
-        
-        .modal-footer {
-            border-top: 2px solid #f0f0f0;
-            padding: 20px 30px;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        select.form-control {
-            padding-left: 15px;
-        }
-        
-        .text-muted {
+        /* Allowed UID Info */
+        .uid-info {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
             font-size: 12px;
-            margin-top: 5px;
-            display: block;
+            color: #666;
+            text-align: center;
+            border: 1px dashed #667eea;
+        }
+        
+        .uid-info i {
+            color: #667eea;
+            margin-right: 5px;
+        }
+        
+        .restricted-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .restricted-badge i {
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -248,8 +219,11 @@
                 <div class="icon-wrapper">
                     <i class="fas fa-chart-line"></i>
                 </div>
+                <span class="restricted-badge">
+                    <i class="fas fa-lock"></i> Private Access Only
+                </span>
                 <h2>Selamat Datang</h2>
-                <p>Silakan login untuk mengakses dashboard monitoring</p>
+                <p>Silakan login dengan akun yang terdaftar</p>
             </div>
             
             <div class="alert alert-danger" id="errorAlert">
@@ -260,6 +234,11 @@
             <div class="alert alert-success" id="successAlert">
                 <i class="fas fa-check-circle me-2"></i>
                 <span id="successMessage"></span>
+            </div>
+
+            <div class="alert alert-info" id="infoAlert" style="display: none;">
+                <i class="fas fa-info-circle me-2"></i>
+                <span id="infoMessage"></span>
             </div>
 
             <form id="loginForm" onsubmit="handleLogin(event)">
@@ -282,49 +261,17 @@
                 </button>
             </form>
 
-            <div class="register-link">
-                <p>Belum punya akun? <a onclick="showRegister()">Daftar disini</a></p>
+            <!-- UID Info (hidden by default) -->
+            <div class="uid-info" id="uidInfo" style="display: none;">
+                <i class="fas fa-fingerprint"></i>
+                <span id="uidDisplay"></span>
             </div>
-        </div>
-    </div>
 
-    <!-- Register Modal -->
-    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Registrasi Akun Baru
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="registerForm" onsubmit="handleRegister(event)">
-                        <div class="mb-3">
-                            <label for="regEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="regEmail" required placeholder="contoh@email.com">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="regPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="regPassword" required minlength="6" placeholder="Minimal 6 karakter">
-                            <small class="text-muted">Password minimal 6 karakter</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="regRole" class="form-label">Role</label>
-                            <select class="form-control" id="regRole">
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" form="registerForm" class="btn btn-primary">Daftar</button>
-                </div>
+            <div class="mt-3 text-center">
+                <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Sistem keamanan terenkripsi
+                </small>
             </div>
         </div>
     </div>
@@ -354,10 +301,27 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
+        // ALLOWED UIDs - Hanya UID ini yang bisa mengakses
+        const ALLOWED_UID = '7wrnhaDpsLRmPXP0nV9ICSpY582';
+        
+        // Optional: Multiple allowed UIDs
+        const ALLOWED_UIDS = [
+            '7wrnhaDpsLRmPXP0nV9ICSpY582'  // Tambah UID lain jika perlu
+        ];
+
         // Check if user is already logged in
         auth.onAuthStateChanged((user) => {
             if (user) {
-                window.location.href = 'dashboard.html';
+                // Cek apakah UID user termasuk yang diizinkan
+                if (ALLOWED_UIDS.includes(user.uid)) {
+                    console.log('User authorized:', user.uid);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // Jika UID tidak diizinkan, logout paksa
+                    console.log('User not authorized:', user.uid);
+                    showError('Akun Anda tidak memiliki izin akses. Hubungi administrator.');
+                    auth.signOut();
+                }
             }
         });
 
@@ -381,12 +345,21 @@
                 .then((userCredential) => {
                     const user = userCredential.user;
                     
+                    // CEK APAKAH UID DIIZINKAN
+                    if (!ALLOWED_UIDS.includes(user.uid)) {
+                        // Jika tidak diizinkan, logout dan tampilkan error
+                        auth.signOut();
+                        throw new Error('unauthorized');
+                    }
+                    
+                    // Jika diizinkan, lanjutkan
                     return database.ref('users/' + user.uid).once('value')
                         .then((snapshot) => {
                             const userData = snapshot.val();
                             if (userData) {
                                 sessionStorage.setItem('userRole', userData.role || 'user');
                                 sessionStorage.setItem('userEmail', user.email);
+                                sessionStorage.setItem('userUID', user.uid);
                                 
                                 showSuccess('Login berhasil! Mengalihkan...');
                                 
@@ -396,11 +369,12 @@
                             } else {
                                 return database.ref('users/' + user.uid).set({
                                     email: user.email,
-                                    role: 'user',
+                                    role: 'admin', // Set sebagai admin untuk UID utama
                                     createdAt: new Date().toISOString()
                                 }).then(() => {
-                                    sessionStorage.setItem('userRole', 'user');
+                                    sessionStorage.setItem('userRole', 'admin');
                                     sessionStorage.setItem('userEmail', user.email);
+                                    sessionStorage.setItem('userUID', user.uid);
                                     
                                     showSuccess('Login berhasil! Mengalihkan...');
                                     
@@ -417,71 +391,52 @@
                     loginBtn.disabled = false;
                     
                     let errorMessage = 'Login gagal. ';
-                    switch (error.code) {
-                        case 'auth/user-not-found':
-                            errorMessage += 'Email tidak terdaftar.';
-                            break;
-                        case 'auth/wrong-password':
-                            errorMessage += 'Password salah.';
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage += 'Format email tidak valid.';
-                            break;
-                        case 'auth/user-disabled':
-                            errorMessage += 'Akun telah dinonaktifkan.';
-                            break;
-                        default:
-                            errorMessage += error.message;
-                    }
-                    showError(errorMessage);
-                });
-        };
-
-        // Show register modal
-        window.showRegister = function() {
-            const modal = new bootstrap.Modal(document.getElementById('registerModal'));
-            modal.show();
-        };
-
-        // Handle register
-        window.handleRegister = function(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const role = document.getElementById('regRole').value;
-            
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
                     
-                    return database.ref('users/' + user.uid).set({
-                        email: user.email,
-                        role: role,
-                        createdAt: new Date().toISOString()
-                    });
-                })
-                .then(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-                    showSuccess('Registrasi berhasil! Silakan login.');
-                    document.getElementById('registerForm').reset();
-                })
-                .catch((error) => {
-                    let errorMessage = 'Registrasi gagal. ';
-                    if (error.code === 'auth/email-already-in-use') {
-                        errorMessage += 'Email sudah digunakan.';
-                    } else if (error.code === 'auth/weak-password') {
-                        errorMessage += 'Password terlalu lemah.';
+                    if (error.message === 'unauthorized') {
+                        errorMessage = 'Akun Anda tidak terdaftar dalam sistem. Akses ditolak.';
                     } else {
-                        errorMessage += error.message;
+                        switch (error.code) {
+                            case 'auth/user-not-found':
+                                errorMessage += 'Email tidak terdaftar.';
+                                break;
+                            case 'auth/wrong-password':
+                                errorMessage += 'Password salah.';
+                                break;
+                            case 'auth/invalid-email':
+                                errorMessage += 'Format email tidak valid.';
+                                break;
+                            case 'auth/user-disabled':
+                                errorMessage += 'Akun telah dinonaktifkan.';
+                                break;
+                            case 'auth/too-many-requests':
+                                errorMessage += 'Terlalu banyak percobaan. Coba lagi nanti.';
+                                break;
+                            default:
+                                errorMessage += error.message;
+                        }
                     }
+                    
                     showError(errorMessage);
+                    
+                    // Tampilkan info UID untuk debugging (hanya jika error)
+                    if (error.code === 'auth/user-not-found') {
+                        // Do nothing
+                    } else if (error.email) {
+                        showInfo('Jika Anda yakin memiliki akses, hubungi administrator.');
+                    }
                 });
+        };
+
+        // Fungsi untuk mengecek akses sebelum register (optional)
+        window.checkAccess = function() {
+            const email = document.getElementById('email').value;
+            // Bisa ditambahkan logika untuk mengecek email tertentu
         };
 
         function hideAlerts() {
             document.getElementById('errorAlert').style.display = 'none';
             document.getElementById('successAlert').style.display = 'none';
+            document.getElementById('infoAlert').style.display = 'none';
         }
 
         function showError(message) {
@@ -505,6 +460,30 @@
                 successAlert.style.display = 'none';
             }, 3000);
         }
+
+        function showInfo(message) {
+            const infoAlert = document.getElementById('infoAlert');
+            const infoMessage = document.getElementById('infoMessage');
+            infoMessage.textContent = message;
+            infoAlert.style.display = 'block';
+            
+            setTimeout(() => {
+                infoAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Optional: Menampilkan UID saat ini (untuk debugging)
+        function displayCurrentUID() {
+            const user = auth.currentUser;
+            if (user) {
+                document.getElementById('uidInfo').style.display = 'block';
+                document.getElementById('uidDisplay').textContent = 'UID: ' + user.uid;
+            }
+        }
+
+        // Hapus fungsi register yang tidak diperlukan
+        // Karena kita hanya ingin satu akun yang bisa akses
+        console.log('Login system initialized - Restricted access mode');
     </script>
 </body>
 </html>
