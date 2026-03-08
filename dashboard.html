@@ -374,7 +374,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h6>TEGANGAN</h6>
-                                <h2 id="data.voltage">0</h2>
+                                <h2 id="voltage">0</h2>
                                 <small>Volt (V)</small>
                             </div>
                             <i class="fas fa-bolt"></i>
@@ -386,7 +386,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h6>ARUS</h6>
-                                <h2 id="data.current">0</h2>
+                                <h2 id="current">0</h2>
                                 <small>Ampere (A)</small>
                             </div>
                             <i class="fas fa-wave-square"></i>
@@ -398,7 +398,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h6>DAYA</h6>
-                                <h2 id="data.power">0</h2>
+                                <h2 id="power">0</h2>
                                 <small>Watt (W)</small>
                             </div>
                             <i class="fas fa-chart-bar"></i>
@@ -410,7 +410,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h6>FREKUENSI</h6>
-                                <h2 id="data.frequency">0</h2>
+                                <h2 id="frequency">0</h2>
                                 <small>Hertz (Hz)</small>
                             </div>
                             <i class="fas fa-clock"></i>
@@ -425,7 +425,7 @@
                     <div class="card-dashboard">
                         <div class="card-body">
                             <h6 class="text-muted mb-2">Power Factor</h6>
-                            <h2 class="mb-0" id="data.pf">0</h2>
+                            <h2 class="mb-0" id="pf">0</h2>
                             <small class="text-success">Normal</small>
                         </div>
                     </div>
@@ -434,7 +434,7 @@
                     <div class="card-dashboard">
                         <div class="card-body">
                             <h6 class="text-muted mb-2">Energi Total</h6>
-                            <h2 class="mb-0" id="data.energy_total">0</h2>
+                            <h2 class="mb-0" id="energy_total">0</h2>
                             <small>kWh</small>
                         </div>
                     </div>
@@ -443,7 +443,7 @@
                     <div class="card-dashboard">
                         <div class="card-body">
                             <h6 class="text-muted mb-2">Energi Terpakai</h6>
-                            <h2 class="mb-0" id="data.energy_used">0</h2>
+                            <h2 class="mb-0" id="energy_used">0</h2>
                             <small>kWh</small>
                         </div>
                     </div>
@@ -455,25 +455,25 @@
                 <div class="col-md-3">
                     <div class="cost-card border-warning">
                         <h6>Biaya per Jam</h6>
-                        <h3 class="text-warning mb-0" id="data.biaya_per_jam">Rp 0</h3>
+                        <h3 class="text-warning mb-0" id="biaya_per_jam">Rp 0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="cost-card border-success">
                         <h6>Biaya per Hari</h6>
-                        <h3 class="text-success mb-0" id="data.biaya_per_hari">Rp 0</h3>
+                        <h3 class="text-success mb-0" id="biaya_per_hari">Rp 0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="cost-card border-info">
                         <h6>Biaya per Bulan</h6>
-                        <h3 class="text-info mb-0" id="data.biaya_per_bulan">Rp 0</h3>
+                        <h3 class="text-info mb-0" id="biaya_per_bulan">Rp 0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="cost-card border-danger">
                         <h6>Biaya Total</h6>
-                        <h3 class="text-danger mb-0" id="data.biaya_total">Rp 0</h3>
+                        <h3 class="text-danger mb-0" id="biaya_total">Rp 0</h3>
                     </div>
                 </div>
             </div>
@@ -651,34 +651,34 @@
                 }).format(value).replace('Rp', 'Rp ');
             }
 
-            // Format number to 1 decimal place
-            function formatNumber(value) {
+            // Format number
+            function formatNumber(value, decimals = 1) {
                 if (value === undefined || value === null) return '0';
-                return Number(value).toFixed(1);
+                return Number(value).toFixed(decimals);
             }
 
-            // LISTEN FOR LIVE DATA - PERBAIKAN PATH
+            // ===== DATA REAL-TIME DARI monitoring/live =====
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('Live data received:', data); // Debugging
+                console.log('Live data received:', data);
                 
                 if (data) {
-                    // Update all fields with proper formatting
-                    document.getElementById('voltage').textContent = formatNumber(data.voltage);
-                    document.getElementById('current').textContent = formatNumber(data.current);
-                    document.getElementById('power').textContent = formatNumber(data.power);
-                    document.getElementById('frequency').textContent = formatNumber(data.frequency);
-                    document.getElementById('pf').textContent = formatNumber(data.pf);
-                    document.getElementById('energy_total').textContent = formatNumber(data.energy_total);
-                    document.getElementById('energy_used').textContent = formatNumber(data.energy_used);
+                    // Update semua field real-time
+                    document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
+                    document.getElementById('current').textContent = formatNumber(data.current, 2);
+                    document.getElementById('power').textContent = formatNumber(data.power, 1);
+                    document.getElementById('frequency').textContent = formatNumber(data.frequency, 0);
+                    document.getElementById('pf').textContent = formatNumber(data.pf, 2);
+                    document.getElementById('energy_total').textContent = formatNumber(data.energy_total, 2);
+                    document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
                     
                     document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam);
                     document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari);
                     document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
                     document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
 
-                    // Update chart
+                    // Update chart dengan data real-time
                     const now = new Date();
                     const timeLabel = now.toLocaleTimeString();
                     
@@ -695,6 +695,46 @@
                 }
             }, (error) => {
                 console.error('Error reading live data:', error);
+            });
+
+            // ===== DATA HISTORY DARI monitoring/history =====
+            const historyRef = database.ref('monitoring/history');
+            historyRef.limitToLast(10).on('value', (snapshot) => {
+                const data = snapshot.val();
+                console.log('History data received:', data);
+                
+                const tbody = document.getElementById('history-table');
+                
+                if (data) {
+                    // Konversi object ke array dan urutkan dari terbaru
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => {
+                            // Sort by key (timestamp) descending
+                            return b[0].localeCompare(a[0]);
+                        })
+                        .slice(0, 10);
+                    
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
+                            html += `<tr>
+                                <td>${value.time || key}</td>
+                                <td>${formatNumber(value.voltage, 1)} V</td>
+                                <td>${formatNumber(value.current, 2)} A</td>
+                                <td>${formatNumber(value.power, 1)} W</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
+                }
+            }, (error) => {
+                console.error('Error reading history:', error);
+                document.getElementById('history-table').innerHTML = 
+                    '<tr><td colspan="4" class="text-center text-danger">Error loading history</td></tr>';
             });
 
             // Listen for pump control
@@ -718,49 +758,6 @@
                     pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
                     pumpStatus.className = 'badge bg-warning status-badge';
                 }
-            });
-
-            // LOAD HISTORY DATA - PERBAIKAN PATH
-            const historyRef = database.ref('monitoring/live');
-            historyRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                console.log('History data received:', data); // Debugging
-                
-                const tbody = document.getElementById('history-table');
-                
-                if (data) {
-                    // Filter out the 'live' node and sort by time
-                    const historyArray = Object.entries(data)
-                        .filter(([key, value]) => key !== 'live' && value.time)
-                        .sort((a, b) => {
-                            // Sort by time descending (newest first)
-                            const timeA = a[1].time || '';
-                            const timeB = b[1].time || '';
-                            return timeB.localeCompare(timeA);
-                        })
-                        .slice(0, 10); // Take only 10 most recent
-                    
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.time || '-'}</td>
-                                <td>${formatNumber(value.voltage)} V</td>
-                                <td>${formatNumber(value.current)} A</td>
-                                <td>${formatNumber(value.power)} W</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data history</td></tr>';
-                }
-            }, (error) => {
-                console.error('Error reading history:', error);
-                document.getElementById('history-table').innerHTML = 
-                    '<tr><td colspan="4" class="text-center text-danger">Error loading history</td></tr>';
             });
 
             // Test connection
@@ -793,14 +790,6 @@
                 console.error('Logout error:', error);
             });
         };
-
-        // Manual refresh function (optional)
-        window.refreshData = function() {
-            location.reload();
-        };
     </script>
 </body>
 </html>
-
-
-
