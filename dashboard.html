@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
     <style>
         * {
             margin: 0;
@@ -34,6 +36,7 @@
             padding: 25px 0;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             z-index: 1000;
+            overflow-y: auto;
         }
 
         .sidebar-brand {
@@ -63,7 +66,7 @@
         .sidebar-menu {
             list-style: none;
             padding: 0;
-            margin: 0;
+            margin: 0 0 100px 0;
         }
 
         .sidebar-menu li {
@@ -93,7 +96,6 @@
             font-weight: 500;
         }
 
-        /* Logout Button di Sidebar */
         .sidebar-logout {
             position: absolute;
             bottom: 25px;
@@ -424,13 +426,49 @@
             width: 100%;
         }
 
-        /* History Table */
+        /* History Tables */
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .history-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .history-tab {
+            padding: 10px 25px;
+            background: white;
+            border: 1px solid #eef2f6;
+            border-radius: 50px;
+            font-weight: 600;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .history-tab:hover {
+            background: #f8fafc;
+        }
+
+        .history-tab.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
         .history-card {
             background: white;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
             border: 1px solid #eef2f6;
+            display: none;
+        }
+
+        .history-card.active {
+            display: block;
         }
 
         .history-header {
@@ -481,6 +519,29 @@
 
         .history-table tbody tr:hover {
             background: #f8fafc;
+        }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 5px 10px;
+            margin: 0 3px;
+            border: 1px solid #eef2f6;
+            border-radius: 5px;
+            background: white;
+            color: #2c3e50 !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #3498db;
+            color: white !important;
+            border-color: #3498db;
         }
 
         /* Loading Spinner */
@@ -551,13 +612,26 @@
         <div class="sidebar-brand">
             <h3><i class="fas fa-chart-pie"></i> Energy Monitor</h3>
             <small>Professional Dashboard</small>
-            <small>By Muhammad Faisal Khadafi</small>
         </div>
         
         <ul class="sidebar-menu">
-            <li class="active">
+            <li class="active" onclick="showSection('dashboard')">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
+            </li>
+            <li onclick="showSection('history')">
+                <i class="fas fa-history"></i>
+                <span>Riwayat Data</span>
+            </li>
+            <li onclick="showSection('analytics')">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </li>
+            <li onclick="showSection('settings')">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </li>
+        </ul>
         
         <!-- User Profile -->
         <div class="user-profile">
@@ -584,7 +658,7 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="page-title">
-                <h4>Dashboard Overview</h4>
+                <h4 id="pageTitle">Dashboard Overview</h4>
                 <small id="userRoleDisplay">Loading...</small>
             </div>
             <div class="date-time" id="current-time">
@@ -593,210 +667,332 @@
             </div>
         </div>
 
-        <!-- Control Panel -->
-        <div class="control-card">
-            <div class="control-title">
-                <i class="fas fa-microchip"></i>
-                Panel Kontrol Pompa
-            </div>
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <span class="me-3" style="color: #7f8c8d;">Status Pompa:</span>
-                        <span id="pump-status" class="pump-status off">
-                            <span class="spinner me-2"></span>
+        <!-- Dashboard Section -->
+        <div id="dashboard-section">
+            <!-- Control Panel -->
+            <div class="control-card">
+                <div class="control-title">
+                    <i class="fas fa-microchip"></i>
+                    Panel Kontrol Pompa
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="me-3" style="color: #7f8c8d;">Status Pompa:</span>
+                            <span id="pump-status" class="pump-status off">
+                                <span class="spinner me-2"></span>
+                                Loading...
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                        <button id="btn-toggle-pump" class="btn-pump off" onclick="togglePump()">
+                            <i class="fas fa-power-off me-2"></i>
                             Loading...
-                        </span>
+                        </button>
                     </div>
                 </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <button id="btn-toggle-pump" class="btn-pump off" onclick="togglePump()">
-                        <i class="fas fa-power-off me-2"></i>
-                        Loading...
-                    </button>
-                </div>
             </div>
-        </div>
 
-        <!-- Summary Card -->
-        <div class="summary-card mb-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h6>Total Biaya Keseluruhan</h6>
-                    <h2 id="biaya_total">Rp 0</h2>
-                    <small>Akumulasi sejak pertama kali digunakan</small>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <h6>Energi Terpakai Total</h6>
-                    <h2 id="energy_used">0 <small style="font-size: 1rem;">kWh</small></h2>
-                    <small>Penggunaan energi kumulatif</small>
+            <!-- Summary Card -->
+            <div class="summary-card mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6>Total Biaya Keseluruhan</h6>
+                        <h2 id="biaya_total">Rp 0</h2>
+                        <small>Akumulasi sejak pertama kali digunakan</small>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <h6>Energi Terpakai Total</h6>
+                        <h2 id="energy_used">0 <small style="font-size: 1rem;">kWh</small></h2>
+                        <small>Penggunaan energi kumulatif</small>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Stat Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-bolt"></i>
+            <!-- Stat Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="stat-label">TEGANGAN</div>
+                        <div class="stat-value" id="voltage">0</div>
+                        <div class="stat-unit">Volt (V)</div>
                     </div>
-                    <div class="stat-label">TEGANGAN</div>
-                    <div class="stat-value" id="voltage">0</div>
-                    <div class="stat-unit">Volt (V)</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-water"></i>
+                        </div>
+                        <div class="stat-label">ARUS</div>
+                        <div class="stat-value" id="current">0</div>
+                        <div class="stat-unit">Ampere (A)</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-label">DAYA</div>
+                        <div class="stat-value" id="power">0</div>
+                        <div class="stat-unit">Watt (W)</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="stat-label">FREKUENSI</div>
+                        <div class="stat-value" id="frequency">0</div>
+                        <div class="stat-unit">Hertz (Hz)</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-water"></i>
-                    </div>
-                    <div class="stat-label">ARUS</div>
-                    <div class="stat-value" id="current">0</div>
-                    <div class="stat-unit">Ampere (A)</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <div class="stat-label">DAYA</div>
-                    <div class="stat-value" id="power">0</div>
-                    <div class="stat-unit">Watt (W)</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-sync-alt"></i>
-                    </div>
-                    <div class="stat-label">FREKUENSI</div>
-                    <div class="stat-value" id="frequency">0</div>
-                    <div class="stat-unit">Hertz (Hz)</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Secondary Stats -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-adjust"></i>
+            <!-- Secondary Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-adjust"></i>
+                        </div>
+                        <div class="stat-label">POWER FACTOR</div>
+                        <div class="stat-value" id="pf">0</div>
+                        <div class="stat-unit">Cos φ</div>
                     </div>
-                    <div class="stat-label">POWER FACTOR</div>
-                    <div class="stat-value" id="pf">0</div>
-                    <div class="stat-unit">Cos φ</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-battery-full"></i>
+                        </div>
+                        <div class="stat-label">ENERGI TOTAL</div>
+                        <div class="stat-value" id="energy_total">0</div>
+                        <div class="stat-unit">kWh (meteran)</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-label">WAKTU UPDATE</div>
+                        <div class="stat-value" id="update_time">-</div>
+                        <div class="stat-unit">Terakhir</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-battery-full"></i>
-                    </div>
-                    <div class="stat-label">ENERGI TOTAL</div>
-                    <div class="stat-value" id="energy_total">0</div>
-                    <div class="stat-unit">kWh (meteran)</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-label">WAKTU UPDATE</div>
-                    <div class="stat-value" id="update_time">-</div>
-                    <div class="stat-unit">Terakhir</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Cost Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="cost-card warning">
-                    <div class="cost-label">
-                        <i class="fas fa-hourglass-half"></i>
-                        Biaya per Jam
+            <!-- Cost Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="cost-card warning">
+                        <div class="cost-label">
+                            <i class="fas fa-hourglass-half"></i>
+                            Biaya per Jam
+                        </div>
+                        <div class="cost-value warning" id="biaya_per_jam">Rp 0</div>
+                        <div class="cost-period">Estimasi biaya per jam</div>
                     </div>
-                    <div class="cost-value warning" id="biaya_per_jam">Rp 0</div>
-                    <div class="cost-period">Estimasi biaya per jam</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="cost-card success">
+                        <div class="cost-label">
+                            <i class="fas fa-calendar-day"></i>
+                            Biaya per Hari
+                        </div>
+                        <div class="cost-value success" id="biaya_per_hari">Rp 0</div>
+                        <div class="cost-period">Estimasi biaya per hari</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="cost-card info">
+                        <div class="cost-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Biaya per Bulan
+                        </div>
+                        <div class="cost-value info" id="biaya_per_bulan">Rp 0</div>
+                        <div class="cost-period">Estimasi biaya per bulan</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="cost-card success">
-                    <div class="cost-label">
-                        <i class="fas fa-calendar-day"></i>
-                        Biaya per Hari
-                    </div>
-                    <div class="cost-value success" id="biaya_per_hari">Rp 0</div>
-                    <div class="cost-period">Estimasi biaya per hari</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="cost-card info">
-                    <div class="cost-label">
-                        <i class="fas fa-calendar-alt"></i>
-                        Biaya per Bulan
-                    </div>
-                    <div class="cost-value info" id="biaya_per_bulan">Rp 0</div>
-                    <div class="cost-period">Estimasi biaya per bulan</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Charts -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-8">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h5><i class="fas fa-chart-line"></i> Grafik Daya Real-time</h5>
-                        <small>Update setiap 5 detik</small>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="powerChart"></canvas>
+            <!-- Charts -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h5><i class="fas fa-chart-line"></i> Grafik Daya Real-time</h5>
+                            <small>Update setiap 5 detik</small>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="powerChart"></canvas>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h5><i class="fas fa-chart-pie"></i> Distribusi Daya</h5>
-                        <small>Power Factor</small>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="distributionChart"></canvas>
+                <div class="col-md-4">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h5><i class="fas fa-chart-pie"></i> Distribusi Daya</h5>
+                            <small>Power Factor</small>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- History Table -->
-        <div class="history-card">
-            <div class="history-header">
-                <h5><i class="fas fa-history"></i> Riwayat Monitoring</h5>
-                <span class="badge">10 data terakhir</span>
+        <!-- History Section -->
+        <div id="history-section" style="display: none;">
+            <div class="history-tabs">
+                <div class="history-tab active" onclick="showHistoryTab('realtime')">Real-time (50 data terakhir)</div>
+                <div class="history-tab" onclick="showHistoryTab('hourly')">Per Jam</div>
+                <div class="history-tab" onclick="showHistoryTab('daily')">Per Hari</div>
+                <div class="history-tab" onclick="showHistoryTab('monthly')">Per Bulan</div>
             </div>
-            <div class="table-responsive" style="max-height: 350px;">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Waktu</th>
-                            <th>Tegangan (V)</th>
-                            <th>Arus (A)</th>
-                            <th>Daya (W)</th>
-                            <th>Frekuensi (Hz)</th>
-                            <th>PF</th>
-                            <th>Biaya per Jam</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table">
-                        <tr>
-                            <td colspan="7" class="text-center" style="color: #95a5a6;">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <!-- Real-time History -->
+            <div id="realtime-history" class="history-card active">
+                <div class="history-header">
+                    <h5><i class="fas fa-clock"></i> Data Real-time (50 data terakhir)</h5>
+                    <span class="badge">Update real-time</span>
+                </div>
+                <div class="table-responsive">
+                    <table id="realtimeTable" class="history-table display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Tegangan (V)</th>
+                                <th>Arus (A)</th>
+                                <th>Daya (W)</th>
+                                <th>Frekuensi (Hz)</th>
+                                <th>PF</th>
+                                <th>Biaya per Jam</th>
+                            </tr>
+                        </thead>
+                        <tbody id="realtime-history-table">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Hourly History -->
+            <div id="hourly-history" class="history-card">
+                <div class="history-header">
+                    <h5><i class="fas fa-clock"></i> Data Per Jam</h5>
+                    <span class="badge">Agregasi per jam</span>
+                </div>
+                <div class="table-responsive">
+                    <table id="hourlyTable" class="history-table display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Periode</th>
+                                <th>Jam</th>
+                                <th>Total Daya (kWh)</th>
+                                <th>Rata-rata Daya (W)</th>
+                                <th>Biaya (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hourly-history-table">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Daily History -->
+            <div id="daily-history" class="history-card">
+                <div class="history-header">
+                    <h5><i class="fas fa-calendar-day"></i> Data Per Hari</h5>
+                    <span class="badge">Agregasi per hari</span>
+                </div>
+                <div class="table-responsive">
+                    <table id="dailyTable" class="history-table display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Total Daya (kWh)</th>
+                                <th>Rata-rata Daya (W)</th>
+                                <th>Biaya (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-history-table">
+                            <tr>
+                                <td colspan="4" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Monthly History -->
+            <div id="monthly-history" class="history-card">
+                <div class="history-header">
+                    <h5><i class="fas fa-calendar-alt"></i> Data Per Bulan</h5>
+                    <span class="badge">Agregasi per bulan</span>
+                </div>
+                <div class="table-responsive">
+                    <table id="monthlyTable" class="history-table display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Tahun</th>
+                                <th>Total Daya (kWh)</th>
+                                <th>Rata-rata Daya (W)</th>
+                                <th>Biaya (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-history-table">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="analytics-section" style="display: none;">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5><i class="fas fa-chart-bar"></i> Analisis Penggunaan Energi</h5>
+                    <small>Grafik historis</small>
+                </div>
+                <div class="chart-container">
+                    <canvas id="analyticsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" style="display: none;">
+            <div class="control-card">
+                <div class="control-title">
+                    <i class="fas fa-cog"></i>
+                    Pengaturan Sistem
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Tarif Listrik (Rp/kWh)</label>
+                            <input type="number" class="form-control" id="tarifSetting" value="1444.70" step="0.01">
+                        </div>
+                        <button class="btn btn-primary" onclick="updateTarif()">Simpan Pengaturan</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -812,8 +1008,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
         // Firebase configuration
@@ -832,39 +1033,70 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        // ALLOWED UIDs - SAMA PERSIS DENGAN PROGRAM LOGIN
-        const ALLOWED_UIDS = [
-            '7wrnhaDpsLRmPXPo9nV9ICSpY582'  // UID dari program login
-        ];
+        // ALLOWED UIDs
+        const ALLOWED_UIDS = ['7wrnhaDpsLRmPXPo9nV9ICSpY582'];
+
+        // DataTables instances
+        let realtimeTable, hourlyTable, dailyTable, monthlyTable;
 
         // Check authentication
         auth.onAuthStateChanged((user) => {
             if (!user) {
-                console.log('No user, redirecting to login');
                 window.location.href = 'index.html';
             } else if (!ALLOWED_UIDS.includes(user.uid)) {
-                console.log('Unauthorized user:', user.uid);
                 auth.signOut().then(() => {
                     window.location.href = 'index.html';
                 });
             } else {
-                console.log('Authorized user:', user.uid);
                 loadDashboard(user);
             }
         });
 
         function loadDashboard(user) {
-            // Display user info
-            const userEmail = user.email || 'Admin';
-            document.getElementById('userEmail').textContent = userEmail.split('@')[0];
+            document.getElementById('userEmail').textContent = user.email.split('@')[0];
             
-            // Get user role from session storage (set during login)
             const userRole = sessionStorage.getItem('userRole') || 'admin';
             document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userRole}`;
+
+            // Initialize DataTables
+            setTimeout(() => {
+                realtimeTable = $('#realtimeTable').DataTable({
+                    pageLength: 25,
+                    order: [[0, 'desc']],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    }
+                });
+
+                hourlyTable = $('#hourlyTable').DataTable({
+                    pageLength: 25,
+                    order: [[0, 'desc'], [1, 'desc']],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    }
+                });
+
+                dailyTable = $('#dailyTable').DataTable({
+                    pageLength: 25,
+                    order: [[0, 'desc']],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    }
+                });
+
+                monthlyTable = $('#monthlyTable').DataTable({
+                    pageLength: 25,
+                    order: [[1, 'desc'], [0, 'desc']],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                    }
+                });
+            }, 1000);
 
             // Initialize Charts
             const ctx1 = document.getElementById('powerChart').getContext('2d');
             const ctx2 = document.getElementById('distributionChart').getContext('2d');
+            const ctx3 = document.getElementById('analyticsChart').getContext('2d');
 
             // Power Chart
             const powerChart = new Chart(ctx1, {
@@ -954,6 +1186,39 @@
                 }
             });
 
+            // Analytics Chart
+            const analyticsChart = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Penggunaan Energi (kWh)',
+                        data: [],
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#eef2f6' },
+                            ticks: { color: '#7f8c8d' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#7f8c8d' }
+                        }
+                    }
+                }
+            });
+
             // Update time
             function updateTime() {
                 const now = new Date();
@@ -974,8 +1239,6 @@
             // Format functions
             function formatCurrency(value) {
                 if (value === undefined || value === null) return 'Rp 0';
-                
-                // Handle negative values
                 const absValue = Math.abs(value);
                 const formatted = new Intl.NumberFormat('id-ID', { 
                     style: 'currency', 
@@ -983,7 +1246,6 @@
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
                 }).format(absValue);
-                
                 return value < 0 ? `-${formatted}` : formatted;
             }
 
@@ -992,14 +1254,15 @@
                 return Number(value).toFixed(decimals);
             }
 
-            // Listen for live data - PATH: monitoring/live
+            // Store all history data
+            let allHistoryData = [];
+
+            // Listen for live data
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('Live data received:', data);
                 
                 if (data) {
-                    // Update basic stats
                     document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
                     document.getElementById('current').textContent = formatNumber(data.current, 2);
                     document.getElementById('power').textContent = formatNumber(data.power, 1);
@@ -1009,13 +1272,11 @@
                     document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
                     document.getElementById('update_time').textContent = data.time || '-';
                     
-                    // Update costs
                     document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam);
                     document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari);
                     document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
                     document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
 
-                    // Add negative class if needed
                     const biayaTotal = document.getElementById('biaya_total');
                     if (data.biaya_total < 0) {
                         biayaTotal.classList.add('negative');
@@ -1042,14 +1303,10 @@
                         distributionChart.data.datasets[0].data = [active, reactive];
                         distributionChart.update();
                     }
-                } else {
-                    console.log('No live data available');
                 }
-            }, (error) => {
-                console.error('Error reading live data:', error);
             });
 
-            // Listen for pump control - PATH: monitoring/control/pompa
+            // Listen for pump control
             const pumpRef = database.ref('monitoring/control/pompa');
             pumpRef.on('value', (snapshot) => {
                 const status = snapshot.val();
@@ -1066,50 +1323,238 @@
                     pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
                     toggleBtn.className = 'btn-pump off';
                     toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
-                } else {
-                    pumpStatus.className = 'pump-status off';
-                    pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
                 }
             });
 
-            // Load history - PATH: monitoring/history (filter out live)
+            // Load history - 50 data terakhir
             const historyRef = database.ref('monitoring/history');
-            historyRef.limitToLast(10).on('value', (snapshot) => {
+            historyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
-                const tbody = document.getElementById('history-table');
                 
                 if (data) {
-                    // Filter out 'live' node and sort by key (timestamp) descending
                     const historyArray = Object.entries(data)
                         .filter(([key]) => key !== 'live' && key.length > 0)
-                        .sort((a, b) => b[0].localeCompare(a[0]))
-                        .slice(0, 10);
+                        .sort((a, b) => b[0].localeCompare(a[0]));
                     
-                    if (historyArray.length > 0) {
-                        let html = '';
+                    allHistoryData = historyArray;
+                    
+                    // Update real-time table
+                    if (realtimeTable) {
+                        realtimeTable.clear();
+                        
                         historyArray.forEach(([key, value]) => {
-                            html += `<tr>
-                                <td>${value.time || key}</td>
-                                <td>${formatNumber(value.voltage, 1)} V</td>
-                                <td>${formatNumber(value.current, 2)} A</td>
-                                <td>${formatNumber(value.power, 1)} W</td>
-                                <td>${formatNumber(value.frequency, 0)} Hz</td>
-                                <td>${formatNumber(value.pf, 2)}</td>
-                                <td>${formatCurrency(value.biaya_per_jam)}</td>
-                            </tr>`;
+                            realtimeTable.row.add([
+                                value.time || key,
+                                formatNumber(value.voltage, 1),
+                                formatNumber(value.current, 2),
+                                formatNumber(value.power, 1),
+                                formatNumber(value.frequency, 0),
+                                formatNumber(value.pf, 2),
+                                formatCurrency(value.biaya_per_jam)
+                            ]);
                         });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data history</td></tr>';
+                        
+                        realtimeTable.draw();
                     }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
+
+                    // Process hourly data
+                    processHourlyData(historyArray);
+                    
+                    // Process daily data
+                    processDailyData(historyArray);
+                    
+                    // Process monthly data
+                    processMonthlyData(historyArray);
+                    
+                    // Update analytics chart
+                    updateAnalyticsChart(historyArray);
                 }
-            }, (error) => {
-                console.error('Error reading history:', error);
-                document.getElementById('history-table').innerHTML = 
-                    '<tr><td colspan="7" class="text-center text-danger">Error loading history</td></tr>';
             });
+
+            // Process hourly data
+            function processHourlyData(historyArray) {
+                const hourlyMap = new Map();
+                
+                historyArray.forEach(([key, value]) => {
+                    if (value.time) {
+                        const date = new Date(value.time.split(' ')[0].split('-').reverse().join('-'));
+                        const hour = value.time.split(' ')[1].substring(0, 2);
+                        const periodKey = `${value.time.split(' ')[0]} ${hour}:00`;
+                        
+                        if (!hourlyMap.has(periodKey)) {
+                            hourlyMap.set(periodKey, {
+                                totalPower: 0,
+                                count: 0,
+                                totalEnergy: 0,
+                                date: value.time.split(' ')[0],
+                                hour: hour
+                            });
+                        }
+                        
+                        const period = hourlyMap.get(periodKey);
+                        period.totalPower += value.power || 0;
+                        period.count++;
+                        period.totalEnergy += (value.power || 0) * 5 / 3600 / 1000; // Estimasi energy per 5 detik
+                    }
+                });
+                
+                if (hourlyTable) {
+                    hourlyTable.clear();
+                    
+                    Array.from(hourlyMap.entries())
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50)
+                        .forEach(([key, value]) => {
+                            const avgPower = value.totalPower / value.count;
+                            const biaya = value.totalEnergy * 1444.70;
+                            
+                            hourlyTable.row.add([
+                                value.date,
+                                `${value.hour}:00`,
+                                value.totalEnergy.toFixed(3),
+                                avgPower.toFixed(1),
+                                formatCurrency(biaya)
+                            ]);
+                        });
+                    
+                    hourlyTable.draw();
+                }
+            }
+
+            // Process daily data
+            function processDailyData(historyArray) {
+                const dailyMap = new Map();
+                
+                historyArray.forEach(([key, value]) => {
+                    if (value.time) {
+                        const date = value.time.split(' ')[0];
+                        
+                        if (!dailyMap.has(date)) {
+                            dailyMap.set(date, {
+                                totalPower: 0,
+                                count: 0,
+                                totalEnergy: 0
+                            });
+                        }
+                        
+                        const day = dailyMap.get(date);
+                        day.totalPower += value.power || 0;
+                        day.count++;
+                        day.totalEnergy += (value.power || 0) * 5 / 3600 / 1000;
+                    }
+                });
+                
+                if (dailyTable) {
+                    dailyTable.clear();
+                    
+                    Array.from(dailyMap.entries())
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50)
+                        .forEach(([date, value]) => {
+                            const avgPower = value.totalPower / value.count;
+                            const biaya = value.totalEnergy * 1444.70;
+                            
+                            dailyTable.row.add([
+                                date,
+                                value.totalEnergy.toFixed(3),
+                                avgPower.toFixed(1),
+                                formatCurrency(biaya)
+                            ]);
+                        });
+                    
+                    dailyTable.draw();
+                }
+            }
+
+            // Process monthly data
+            function processMonthlyData(historyArray) {
+                const monthlyMap = new Map();
+                
+                historyArray.forEach(([key, value]) => {
+                    if (value.time) {
+                        const [day, month, year] = value.time.split(' ')[0].split('-');
+                        const monthKey = `${month}-${year}`;
+                        
+                        if (!monthlyMap.has(monthKey)) {
+                            monthlyMap.set(monthKey, {
+                                month: month,
+                                year: year,
+                                totalPower: 0,
+                                count: 0,
+                                totalEnergy: 0
+                            });
+                        }
+                        
+                        const monthData = monthlyMap.get(monthKey);
+                        monthData.totalPower += value.power || 0;
+                        monthData.count++;
+                        monthData.totalEnergy += (value.power || 0) * 5 / 3600 / 1000;
+                    }
+                });
+                
+                if (monthlyTable) {
+                    monthlyTable.clear();
+                    
+                    Array.from(monthlyMap.entries())
+                        .sort((a, b) => {
+                            const [monthA, yearA] = a[0].split('-');
+                            const [monthB, yearB] = b[0].split('-');
+                            return yearB - yearA || monthB - monthA;
+                        })
+                        .slice(0, 50)
+                        .forEach(([key, value]) => {
+                            const avgPower = value.totalPower / value.count;
+                            const biaya = value.totalEnergy * 1444.70;
+                            
+                            monthlyTable.row.add([
+                                getMonthName(value.month),
+                                value.year,
+                                value.totalEnergy.toFixed(3),
+                                avgPower.toFixed(1),
+                                formatCurrency(biaya)
+                            ]);
+                        });
+                    
+                    monthlyTable.draw();
+                }
+            }
+
+            // Update analytics chart
+            function updateAnalyticsChart(historyArray) {
+                const dailyMap = new Map();
+                
+                historyArray.slice(0, 30).forEach(([key, value]) => {
+                    if (value.time) {
+                        const date = value.time.split(' ')[0];
+                        
+                        if (!dailyMap.has(date)) {
+                            dailyMap.set(date, 0);
+                        }
+                        
+                        dailyMap.set(date, dailyMap.get(date) + ((value.power || 0) * 5 / 3600 / 1000));
+                    }
+                });
+                
+                const labels = [];
+                const data = [];
+                
+                Array.from(dailyMap.entries())
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .forEach(([date, energy]) => {
+                        labels.push(date);
+                        data.push(energy);
+                    });
+                
+                analyticsChart.data.labels = labels;
+                analyticsChart.data.datasets[0].data = data;
+                analyticsChart.update();
+            }
+
+            // Helper function to get month name
+            function getMonthName(month) {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                return months[parseInt(month) - 1];
+            }
 
             // Connection status
             database.ref('.info/connected').on('value', (snap) => {
@@ -1126,7 +1571,7 @@
                 }
             });
 
-            // Load user data from database
+            // Load user data
             database.ref('users/' + user.uid).once('value').then((snapshot) => {
                 const userData = snapshot.val();
                 if (userData && userData.role) {
@@ -1135,34 +1580,60 @@
             });
         }
 
-        // Toggle pump function
-        window.togglePump = function() {
-            const pumpRef = database.ref('monitoring/control/pompa');
-            pumpRef.transaction((currentStatus) => {
-                return !currentStatus;
-            }).then(() => {
-                console.log('Pump toggled successfully');
-            }).catch((error) => {
-                console.error('Error toggling pump:', error);
-                alert('Gagal mengubah status pompa. Silakan coba lagi.');
-            });
+        // Section navigation
+        window.showSection = function(section) {
+            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+            event.target.closest('li').classList.add('active');
+            
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('history-section').style.display = 'none';
+            document.getElementById('analytics-section').style.display = 'none';
+            document.getElementById('settings-section').style.display = 'none';
+            
+            document.getElementById(`${section}-section`).style.display = 'block';
+            
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'history': 'Riwayat Data',
+                'analytics': 'Analytics',
+                'settings': 'Pengaturan'
+            };
+            document.getElementById('pageTitle').textContent = titles[section];
         };
 
-        // Logout function
+        // History tabs
+        window.showHistoryTab = function(tab) {
+            document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('realtime-history').classList.remove('active');
+            document.getElementById('hourly-history').classList.remove('active');
+            document.getElementById('daily-history').classList.remove('active');
+            document.getElementById('monthly-history').classList.remove('active');
+            
+            document.getElementById(`${tab}-history`).classList.add('active');
+        };
+
+        // Toggle pump
+        window.togglePump = function() {
+            const pumpRef = database.ref('monitoring/control/pompa');
+            pumpRef.transaction((currentStatus) => !currentStatus);
+        };
+
+        // Update tarif
+        window.updateTarif = function() {
+            const tarif = document.getElementById('tarifSetting').value;
+            // Implementasi update tarif ke database jika diperlukan
+            alert('Pengaturan disimpan');
+        };
+
+        // Logout
         window.logout = function() {
             auth.signOut().then(() => {
-                // Clear session storage
-                sessionStorage.removeItem('userRole');
-                sessionStorage.removeItem('userEmail');
-                sessionStorage.removeItem('userUID');
-                
-                console.log('Logged out successfully');
+                sessionStorage.clear();
                 window.location.href = 'index.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
             });
         };
     </script>
 </body>
 </html>
-
