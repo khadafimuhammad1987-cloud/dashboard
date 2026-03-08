@@ -34,6 +34,7 @@
             padding: 25px 0;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             z-index: 1000;
+            overflow-y: auto;
         }
 
         .sidebar-brand {
@@ -63,7 +64,7 @@
         .sidebar-menu {
             list-style: none;
             padding: 0;
-            margin: 0;
+            margin: 0 0 100px 0;
         }
 
         .sidebar-menu li {
@@ -424,13 +425,49 @@
             width: 100%;
         }
 
-        /* History Table */
+        /* History Tabs */
+        .history-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .history-tab {
+            padding: 10px 25px;
+            background: white;
+            border: 1px solid #eef2f6;
+            border-radius: 50px;
+            font-weight: 600;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .history-tab:hover {
+            background: #f8fafc;
+        }
+
+        .history-tab.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        /* History Cards */
         .history-card {
             background: white;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
             border: 1px solid #eef2f6;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .history-card.active {
+            display: block;
         }
 
         .history-header {
@@ -542,6 +579,10 @@
             .cost-value {
                 font-size: 1.3rem;
             }
+            
+            .history-tabs {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -554,19 +595,27 @@
         </div>
         
         <ul class="sidebar-menu">
-            <li class="active">
+            <li class="active" onclick="showSection('dashboard')">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </li>
-            <li>
-                <i class="fas fa-chart-line"></i>
-                <span>Analytics</span>
+            <li onclick="showSection('realtime')">
+                <i class="fas fa-clock"></i>
+                <span>Real-time</span>
             </li>
-            <li>
-                <i class="fas fa-history"></i>
-                <span>History</span>
+            <li onclick="showSection('hourly')">
+                <i class="fas fa-hourglass-half"></i>
+                <span>Per Jam</span>
             </li>
-            <li>
+            <li onclick="showSection('daily')">
+                <i class="fas fa-calendar-day"></i>
+                <span>Per Hari</span>
+            </li>
+            <li onclick="showSection('monthly')">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Per Bulan</span>
+            </li>
+            <li onclick="showSection('settings')">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </li>
@@ -597,7 +646,7 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="page-title">
-                <h4>Dashboard Overview</h4>
+                <h4 id="pageTitle">Dashboard Overview</h4>
                 <small id="userRoleDisplay">Loading...</small>
             </div>
             <div class="date-time" id="current-time">
@@ -606,210 +655,317 @@
             </div>
         </div>
 
-        <!-- Control Panel -->
-        <div class="control-card">
-            <div class="control-title">
-                <i class="fas fa-microchip"></i>
-                Panel Kontrol Pompa
-            </div>
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <span class="me-3" style="color: #7f8c8d;">Status Pompa:</span>
-                        <span id="pump-status" class="pump-status off">
-                            <span class="spinner me-2"></span>
+        <!-- Dashboard Section (Default View) -->
+        <div id="dashboard-section">
+            <!-- Control Panel -->
+            <div class="control-card">
+                <div class="control-title">
+                    <i class="fas fa-microchip"></i>
+                    Panel Kontrol Pompa
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="me-3" style="color: #7f8c8d;">Status Pompa:</span>
+                            <span id="pump-status" class="pump-status off">
+                                <span class="spinner me-2"></span>
+                                Loading...
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                        <button id="btn-toggle-pump" class="btn-pump off" onclick="togglePump()">
+                            <i class="fas fa-power-off me-2"></i>
                             Loading...
-                        </span>
+                        </button>
                     </div>
                 </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <button id="btn-toggle-pump" class="btn-pump off" onclick="togglePump()">
-                        <i class="fas fa-power-off me-2"></i>
-                        Loading...
-                    </button>
-                </div>
             </div>
-        </div>
 
-        <!-- Summary Card -->
-        <div class="summary-card mb-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h6>Total Biaya Keseluruhan</h6>
-                    <h2 id="biaya_total">Rp 0</h2>
-                    <small>Akumulasi sejak pertama kali digunakan</small>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <h6>Energi Terpakai Total</h6>
-                    <h2 id="energy_used">0 <small style="font-size: 1rem;">kWh</small></h2>
-                    <small>Penggunaan energi kumulatif</small>
+            <!-- Summary Card -->
+            <div class="summary-card mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6>Total Biaya Keseluruhan</h6>
+                        <h2 id="biaya_total">Rp 0</h2>
+                        <small>Akumulasi sejak pertama kali digunakan</small>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <h6>Energi Terpakai Total</h6>
+                        <h2 id="energy_used">0 <small style="font-size: 1rem;">kWh</small></h2>
+                        <small>Penggunaan energi kumulatif</small>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Stat Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-bolt"></i>
+            <!-- Stat Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="stat-label">TEGANGAN</div>
+                        <div class="stat-value" id="voltage">0</div>
+                        <div class="stat-unit">Volt (V)</div>
                     </div>
-                    <div class="stat-label">TEGANGAN</div>
-                    <div class="stat-value" id="voltage">0</div>
-                    <div class="stat-unit">Volt (V)</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-water"></i>
+                        </div>
+                        <div class="stat-label">ARUS</div>
+                        <div class="stat-value" id="current">0</div>
+                        <div class="stat-unit">Ampere (A)</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-label">DAYA</div>
+                        <div class="stat-value" id="power">0</div>
+                        <div class="stat-unit">Watt (W)</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="stat-label">FREKUENSI</div>
+                        <div class="stat-value" id="frequency">0</div>
+                        <div class="stat-unit">Hertz (Hz)</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-water"></i>
-                    </div>
-                    <div class="stat-label">ARUS</div>
-                    <div class="stat-value" id="current">0</div>
-                    <div class="stat-unit">Ampere (A)</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <div class="stat-label">DAYA</div>
-                    <div class="stat-value" id="power">0</div>
-                    <div class="stat-unit">Watt (W)</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-sync-alt"></i>
-                    </div>
-                    <div class="stat-label">FREKUENSI</div>
-                    <div class="stat-value" id="frequency">0</div>
-                    <div class="stat-unit">Hertz (Hz)</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Secondary Stats -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-adjust"></i>
+            <!-- Secondary Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-adjust"></i>
+                        </div>
+                        <div class="stat-label">POWER FACTOR</div>
+                        <div class="stat-value" id="pf">0</div>
+                        <div class="stat-unit">Cos φ</div>
                     </div>
-                    <div class="stat-label">POWER FACTOR</div>
-                    <div class="stat-value" id="pf">0</div>
-                    <div class="stat-unit">Cos φ</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-battery-full"></i>
+                        </div>
+                        <div class="stat-label">ENERGI TOTAL</div>
+                        <div class="stat-value" id="energy_total">0</div>
+                        <div class="stat-unit">kWh (meteran)</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-label">WAKTU UPDATE</div>
+                        <div class="stat-value" id="update_time">-</div>
+                        <div class="stat-unit">Terakhir</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-battery-full"></i>
-                    </div>
-                    <div class="stat-label">ENERGI TOTAL</div>
-                    <div class="stat-value" id="energy_total">0</div>
-                    <div class="stat-unit">kWh (meteran)</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-label">WAKTU UPDATE</div>
-                    <div class="stat-value" id="update_time">-</div>
-                    <div class="stat-unit">Terakhir</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Cost Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="cost-card warning">
-                    <div class="cost-label">
-                        <i class="fas fa-hourglass-half"></i>
-                        Biaya per Jam
+            <!-- Cost Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="cost-card warning">
+                        <div class="cost-label">
+                            <i class="fas fa-hourglass-half"></i>
+                            Biaya per Jam
+                        </div>
+                        <div class="cost-value warning" id="biaya_per_jam">Rp 0</div>
+                        <div class="cost-period">Estimasi biaya per jam</div>
                     </div>
-                    <div class="cost-value warning" id="biaya_per_jam">Rp 0</div>
-                    <div class="cost-period">Estimasi biaya per jam</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="cost-card success">
+                        <div class="cost-label">
+                            <i class="fas fa-calendar-day"></i>
+                            Biaya per Hari
+                        </div>
+                        <div class="cost-value success" id="biaya_per_hari">Rp 0</div>
+                        <div class="cost-period">Estimasi biaya per hari</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="cost-card info">
+                        <div class="cost-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Biaya per Bulan
+                        </div>
+                        <div class="cost-value info" id="biaya_per_bulan">Rp 0</div>
+                        <div class="cost-period">Estimasi biaya per bulan</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="cost-card success">
-                    <div class="cost-label">
-                        <i class="fas fa-calendar-day"></i>
-                        Biaya per Hari
-                    </div>
-                    <div class="cost-value success" id="biaya_per_hari">Rp 0</div>
-                    <div class="cost-period">Estimasi biaya per hari</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="cost-card info">
-                    <div class="cost-label">
-                        <i class="fas fa-calendar-alt"></i>
-                        Biaya per Bulan
-                    </div>
-                    <div class="cost-value info" id="biaya_per_bulan">Rp 0</div>
-                    <div class="cost-period">Estimasi biaya per bulan</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Charts -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-8">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h5><i class="fas fa-chart-line"></i> Grafik Daya Real-time</h5>
-                        <small>Update setiap 5 detik</small>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="powerChart"></canvas>
+            <!-- Charts -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h5><i class="fas fa-chart-line"></i> Grafik Daya Real-time</h5>
+                            <small>Update setiap 5 detik</small>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="powerChart"></canvas>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h5><i class="fas fa-chart-pie"></i> Distribusi Daya</h5>
-                        <small>Power Factor</small>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="distributionChart"></canvas>
+                <div class="col-md-4">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h5><i class="fas fa-chart-pie"></i> Distribusi Daya</h5>
+                            <small>Power Factor</small>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- History Table -->
-        <div class="history-card">
-            <div class="history-header">
-                <h5><i class="fas fa-history"></i> Riwayat Monitoring</h5>
-                <span class="badge">10 data terakhir</span>
+        <!-- Real-time History Section -->
+        <div id="realtime-section" style="display: none;">
+            <div class="history-card active">
+                <div class="history-header">
+                    <h5><i class="fas fa-clock"></i> Riwayat Real-time (50 data terakhir)</h5>
+                    <span class="badge">Update real-time</span>
+                </div>
+                <div class="table-responsive" style="max-height: 500px;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Tegangan (V)</th>
+                                <th>Arus (A)</th>
+                                <th>Daya (W)</th>
+                                <th>Frekuensi (Hz)</th>
+                                <th>PF</th>
+                                <th>Biaya per Jam</th>
+                            </tr>
+                        </thead>
+                        <tbody id="realtime-history-table">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="table-responsive" style="max-height: 350px;">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Waktu</th>
-                            <th>Tegangan (V)</th>
-                            <th>Arus (A)</th>
-                            <th>Daya (W)</th>
-                            <th>Frekuensi (Hz)</th>
-                            <th>PF</th>
-                            <th>Biaya per Jam</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table">
-                        <tr>
-                            <td colspan="7" class="text-center" style="color: #95a5a6;">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+        </div>
+
+        <!-- Hourly History Section -->
+        <div id="hourly-section" style="display: none;">
+            <div class="history-card active">
+                <div class="history-header">
+                    <h5><i class="fas fa-hourglass-half"></i> Riwayat Per Jam (50 data terakhir)</h5>
+                    <span class="badge">Agregasi per jam</span>
+                </div>
+                <div class="table-responsive" style="max-height: 500px;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Jam</th>
+                                <th>Total Energi (kWh)</th>
+                                <th>Rata-rata Daya (W)</th>
+                                <th>Total Biaya (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hourly-history-table">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily History Section -->
+        <div id="daily-section" style="display: none;">
+            <div class="history-card active">
+                <div class="history-header">
+                    <h5><i class="fas fa-calendar-day"></i> Riwayat Per Hari (50 data terakhir)</h5>
+                    <span class="badge">Agregasi per hari</span>
+                </div>
+                <div class="table-responsive" style="max-height: 500px;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Total Energi (kWh)</th>
+                                <th>Rata-rata Daya (W)</th>
+                                <th>Total Biaya (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-history-table">
+                            <tr>
+                                <td colspan="4" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly History Section -->
+        <div id="monthly-section" style="display: none;">
+            <div class="history-card active">
+                <div class="history-header">
+                    <h5><i class="fas fa-calendar-alt"></i> Riwayat Per Bulan (50 data terakhir)</h5>
+                    <span class="badge">Agregasi per bulan</span>
+                </div>
+                <div class="table-responsive" style="max-height: 500px;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Tahun</th>
+                                <th>Total Energi (kWh)</th>
+                                <th>Rata-rata Daya (W)</th>
+                                <th>Total Biaya (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-history-table">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" style="display: none;">
+            <div class="control-card">
+                <div class="control-title">
+                    <i class="fas fa-cog"></i>
+                    Pengaturan Sistem
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Tarif Listrik (Rp/kWh)</label>
+                            <input type="number" class="form-control" id="tarifSetting" value="1444.70" step="0.01">
+                        </div>
+                        <button class="btn btn-primary" onclick="updateTarif()">Simpan Pengaturan</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -845,9 +1001,9 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        // ALLOWED UIDs - SAMA PERSIS DENGAN PROGRAM LOGIN
+        // ALLOWED UIDs
         const ALLOWED_UIDS = [
-            '7wrnhaDpsLRmPXPo9nV9ICSpY582'  // UID dari program login
+            '7wrnhaDpsLRmPXPo9nV9ICSpY582'
         ];
 
         // Check authentication
@@ -871,7 +1027,6 @@
             const userEmail = user.email || 'Admin';
             document.getElementById('userEmail').textContent = userEmail.split('@')[0];
             
-            // Get user role from session storage (set during login)
             const userRole = sessionStorage.getItem('userRole') || 'admin';
             document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userRole}`;
 
@@ -987,8 +1142,6 @@
             // Format functions
             function formatCurrency(value) {
                 if (value === undefined || value === null) return 'Rp 0';
-                
-                // Handle negative values
                 const absValue = Math.abs(value);
                 const formatted = new Intl.NumberFormat('id-ID', { 
                     style: 'currency', 
@@ -996,7 +1149,6 @@
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
                 }).format(absValue);
-                
                 return value < 0 ? `-${formatted}` : formatted;
             }
 
@@ -1005,14 +1157,12 @@
                 return Number(value).toFixed(decimals);
             }
 
-            // Listen for live data - PATH: monitoring/live
+            // ===== LISTEN FOR LIVE DATA =====
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('Live data received:', data);
                 
                 if (data) {
-                    // Update basic stats
                     document.getElementById('voltage').textContent = formatNumber(data.voltage, 1);
                     document.getElementById('current').textContent = formatNumber(data.current, 2);
                     document.getElementById('power').textContent = formatNumber(data.power, 1);
@@ -1022,13 +1172,11 @@
                     document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
                     document.getElementById('update_time').textContent = data.time || '-';
                     
-                    // Update costs
                     document.getElementById('biaya_per_jam').textContent = formatCurrency(data.biaya_per_jam);
                     document.getElementById('biaya_per_hari').textContent = formatCurrency(data.biaya_per_hari);
                     document.getElementById('biaya_per_bulan').textContent = formatCurrency(data.biaya_per_bulan);
                     document.getElementById('biaya_total').textContent = formatCurrency(data.biaya_total);
 
-                    // Add negative class if needed
                     const biayaTotal = document.getElementById('biaya_total');
                     if (data.biaya_total < 0) {
                         biayaTotal.classList.add('negative');
@@ -1055,14 +1203,10 @@
                         distributionChart.data.datasets[0].data = [active, reactive];
                         distributionChart.update();
                     }
-                } else {
-                    console.log('No live data available');
                 }
-            }, (error) => {
-                console.error('Error reading live data:', error);
             });
 
-            // Listen for pump control - PATH: monitoring/control/pompa
+            // ===== LISTEN FOR PUMP CONTROL =====
             const pumpRef = database.ref('monitoring/control/pompa');
             pumpRef.on('value', (snapshot) => {
                 const status = snapshot.val();
@@ -1079,24 +1223,20 @@
                     pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
                     toggleBtn.className = 'btn-pump off';
                     toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
-                } else {
-                    pumpStatus.className = 'pump-status off';
-                    pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
                 }
             });
 
-            // Load history - PATH: monitoring/history (filter out live)
+            // ===== LOAD REAL-TIME HISTORY =====
             const historyRef = database.ref('monitoring/history');
-            historyRef.limitToLast(10).on('value', (snapshot) => {
+            historyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
-                const tbody = document.getElementById('history-table');
+                const tbody = document.getElementById('realtime-history-table');
                 
                 if (data) {
-                    // Filter out 'live' node and sort by key (timestamp) descending
                     const historyArray = Object.entries(data)
                         .filter(([key]) => key !== 'live' && key.length > 0)
                         .sort((a, b) => b[0].localeCompare(a[0]))
-                        .slice(0, 10);
+                        .slice(0, 50);
                     
                     if (historyArray.length > 0) {
                         let html = '';
@@ -1113,15 +1253,101 @@
                         });
                         tbody.innerHTML = html;
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data history</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
+                    }
+                }
+            });
+
+            // ===== LOAD HOURLY HISTORY =====
+            const hourlyRef = database.ref('monitoring/history_hourly');
+            hourlyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('hourly-history-table');
+                
+                if (data) {
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50);
+                    
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
+                            html += `<tr>
+                                <td>${value.tanggal || '-'}</td>
+                                <td>${value.jam || '-'}:00</td>
+                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(value.rata_rata_daya, 1)} W</td>
+                                <td>${formatCurrency(value.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
                     }
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
                 }
-            }, (error) => {
-                console.error('Error reading history:', error);
-                document.getElementById('history-table').innerHTML = 
-                    '<tr><td colspan="7" class="text-center text-danger">Error loading history</td></tr>';
+            });
+
+            // ===== LOAD DAILY HISTORY =====
+            const dailyRef = database.ref('monitoring/history_daily');
+            dailyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('daily-history-table');
+                
+                if (data) {
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50);
+                    
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
+                            html += `<tr>
+                                <td>${value.tanggal || key}</td>
+                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(value.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(value.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
+                }
+            });
+
+            // ===== LOAD MONTHLY HISTORY =====
+            const monthlyRef = database.ref('monitoring/history_monthly');
+            monthlyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('monthly-history-table');
+                
+                if (data) {
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50);
+                    
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
+                            html += `<tr>
+                                <td>${value.nama_bulan || '-'}</td>
+                                <td>${value.tahun || '-'}</td>
+                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(value.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(value.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+                }
             });
 
             // Connection status
@@ -1138,41 +1364,61 @@
                     statusDiv.innerHTML = '<i class="fas fa-circle" style="color: #e74c3c;"></i><span>Terputus dari server</span>';
                 }
             });
-
-            // Load user data from database
-            database.ref('users/' + user.uid).once('value').then((snapshot) => {
-                const userData = snapshot.val();
-                if (userData && userData.role) {
-                    document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userData.role}`;
-                }
-            });
         }
 
-        // Toggle pump function
-        window.togglePump = function() {
-            const pumpRef = database.ref('monitoring/control/pompa');
-            pumpRef.transaction((currentStatus) => {
-                return !currentStatus;
-            }).then(() => {
-                console.log('Pump toggled successfully');
-            }).catch((error) => {
-                console.error('Error toggling pump:', error);
-                alert('Gagal mengubah status pompa. Silakan coba lagi.');
-            });
+        // Section navigation
+        window.showSection = function(section) {
+            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+            event.target.closest('li').classList.add('active');
+            
+            // Hide all sections
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('realtime-section').style.display = 'none';
+            document.getElementById('hourly-section').style.display = 'none';
+            document.getElementById('daily-section').style.display = 'none';
+            document.getElementById('monthly-section').style.display = 'none';
+            document.getElementById('settings-section').style.display = 'none';
+            
+            // Show selected section
+            if (section === 'dashboard') {
+                document.getElementById('dashboard-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Dashboard Overview';
+            } else if (section === 'realtime') {
+                document.getElementById('realtime-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Real-time';
+            } else if (section === 'hourly') {
+                document.getElementById('hourly-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Per Jam';
+            } else if (section === 'daily') {
+                document.getElementById('daily-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Per Hari';
+            } else if (section === 'monthly') {
+                document.getElementById('monthly-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Per Bulan';
+            } else if (section === 'settings') {
+                document.getElementById('settings-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Pengaturan';
+            }
         };
 
-        // Logout function
+        // Toggle pump
+        window.togglePump = function() {
+            const pumpRef = database.ref('monitoring/control/pompa');
+            pumpRef.transaction((currentStatus) => !currentStatus);
+        };
+
+        // Update tarif
+        window.updateTarif = function() {
+            const tarif = document.getElementById('tarifSetting').value;
+            alert('Pengaturan disimpan (Rp ' + tarif + '/kWh)');
+            // Implementasi update tarif ke database jika diperlukan
+        };
+
+        // Logout
         window.logout = function() {
             auth.signOut().then(() => {
-                // Clear session storage
-                sessionStorage.removeItem('userRole');
-                sessionStorage.removeItem('userEmail');
-                sessionStorage.removeItem('userUID');
-                
-                console.log('Logged out successfully');
+                sessionStorage.clear();
                 window.location.href = 'index.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
             });
         };
     </script>
