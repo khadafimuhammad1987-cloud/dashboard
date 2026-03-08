@@ -1269,80 +1269,53 @@
 
             
             // ===== LOAD HOURLY HISTORY DENGAN SORTING YANG BENAR =====
-// ===== LOAD HOURLY HISTORY DENGAN SORTING YANG BENAR =====
+// ===== LOAD HOURLY HISTORY - ALTERNATIF TERAKHIR =====
 const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
-hourlyRef.limitToLast(50).on('value', (snapshot) => {
+hourlyRef.once('value', (snapshot) => {
     const data = snapshot.val();
     const tbody = document.getElementById('hourly-history-table');
     
     if (data) {
-        // Konversi object ke array
-        const historyArray = Object.entries(data).map(([key, value]) => ({
-            key: key,
-            ...value
-        }));
+        // Ambil semua key, sortir secara manual
+        const keys = Object.keys(data);
         
-        // SORTING: Tanggal turun (descending), Jam TURUN (descending)
-        // TAPI dengan logika bahwa jam 00 adalah yang terbesar dalam satu hari
-        historyArray.sort((a, b) => {
-            // Ekstrak tanggal dan jam dari key
-            const aKeyParts = a.key.split('_');
-            const bKeyParts = b.key.split('_');
+        // Sortir keys secara descending
+        keys.sort().reverse();
+        
+        // Ambil 50 key teratas
+        const topKeys = keys.slice(0, 50);
+        
+        let html = '';
+        topKeys.forEach(key => {
+            const item = data[key];
             
-            const aDate = aKeyParts[0]; // YYYY-MM-DD
-            const bDate = bKeyParts[0];
+            // Ekstrak dari key
+            const keyParts = key.split('_');
+            const datePart = keyParts[0]; // YYYY-MM-DD
+            const hourPart = keyParts[1] || '00';
             
-            const aHour = parseInt(aKeyParts[1] || '0');
-            const bHour = parseInt(bKeyParts[1] || '0');
+            // Konversi tanggal
+            const [tahun, bulan, hari] = datePart.split('-');
+            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
             
-            // 1. Urutkan berdasarkan TANGGAL (descending)
-            if (aDate !== bDate) {
-                return bDate.localeCompare(aDate); // 2026-03-10 > 2026-03-09
-            }
+            // Format jam
+            const jamFormatted = hourPart.padStart(2, '0');
             
-            // 2. Jika tanggal SAMA, urutkan berdasarkan JAM (descending)
-            //    Jam 23 > 22 > ... > 01 > 00
-            //    Artinya dalam 1 hari, data paling atas adalah jam 23:00
-            //    dan data paling bawah adalah jam 00:00
-            return bHour - aHour;
+            html += `<tr>
+                <td>${tanggalFormatted}</td>
+                <td>${jamFormatted}:00</td>
+                <td>${formatNumber(item.total_energi || 0, 3)} kWh</td>
+                <td>${formatNumber(item.rata_rata_daya || 0, 1)} W</td>
+                <td>${formatCurrency(item.total_biaya || 0)}</td>
+            </tr>`;
         });
         
-        // Ambil 50 data teratas
-        const top50 = historyArray.slice(0, 50);
-        
-        if (top50.length > 0) {
-            let html = '';
-            top50.forEach(item => {
-                // Ekstrak tanggal dan jam dari key
-                const keyParts = item.key.split('_');
-                const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
-                const jamKey = parseInt(keyParts[1] || '0');
-                
-                // Konversi tanggal ke format DD-MM-YYYY
-                const [tahun, bulan, hari] = tanggalKey.split('-');
-                const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                
-                // Format jam dengan leading zero
-                const jamFormatted = jamKey.toString().padStart(2, '0');
-                
-                html += `<tr>
-                    <td>${item.tanggal || tanggalFormatted}</td>
-                    <td>${jamFormatted}:00</td>
-                    <td>${formatNumber(item.total_energi, 3)} kWh</td>
-                    <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
-                    <td>${formatCurrency(item.total_biaya)}</td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-        }
+        tbody.innerHTML = html;
     } else {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
     }
 });
 
-            // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
            // ===== LOAD HOURLY HISTORY DENGAN SORTING PAKSA =====
 const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
 hourlyRef.once('value', (snapshot) => {
@@ -1518,6 +1491,7 @@ hourlyRef.once('value', (snapshot) => {
     </script>
 </body>
 </html>
+
 
 
 
