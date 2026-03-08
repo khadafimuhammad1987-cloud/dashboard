@@ -1267,61 +1267,76 @@
                 }
             });
 
+            
             // ===== LOAD HOURLY HISTORY DENGAN SORTING YANG BENAR =====
-            const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
-            hourlyRef.limitToLast(50).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.getElementById('hourly-history-table');
+const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
+hourlyRef.limitToLast(50).on('value', (snapshot) => {
+    const data = snapshot.val();
+    const tbody = document.getElementById('hourly-history-table');
+    
+    if (data) {
+        // Konversi object ke array
+        const historyArray = Object.entries(data).map(([key, value]) => ({
+            key: key,
+            ...value
+        }));
+        
+        // SORTING KHUSUS: Tanggal turun (descending), Jam turun (descending)
+        historyArray.sort((a, b) => {
+            // Ekstrak tanggal dan jam dari key
+            const aKeyParts = a.key.split('_');
+            const bKeyParts = b.key.split('_');
+            
+            const aDate = aKeyParts[0]; // YYYY-MM-DD
+            const bDate = bKeyParts[0];
+            
+            const aHour = parseInt(aKeyParts[1] || '0');
+            const bHour = parseInt(bKeyParts[1] || '0');
+            
+            // 1. Urutkan berdasarkan TANGGAL (descending)
+            if (aDate !== bDate) {
+                return bDate.localeCompare(aDate); // 2026-03-10 > 2026-03-09
+            }
+            
+            // 2. Jika tanggal sama, urutkan berdasarkan JAM (descending)
+            //    Jam 23 > 22 > ... > 01 > 00
+            return bHour - aHour;
+        });
+        
+        // Ambil 50 data teratas
+        const top50 = historyArray.slice(0, 50);
+        
+        if (top50.length > 0) {
+            let html = '';
+            top50.forEach(item => {
+                // Ekstrak tanggal dan jam dari key
+                const keyParts = item.key.split('_');
+                const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
+                const jamKey = parseInt(keyParts[1] || '0');
                 
-                if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
-                    
-                    // SORTING berdasarkan key (YYYY-MM-DD_HH)
-                    historyArray.sort((a, b) => {
-                        return b.key.localeCompare(a.key); // Descending
-                    });
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
-                        let html = '';
-                        top50.forEach(item => {
-                            // Ekstrak tanggal dan jam dari key
-                            const keyParts = item.key.split('_');
-                            const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
-                            const jamKey = keyParts[1] || '00';
-                            
-                            // Konversi tanggal ke format DD-MM-YYYY
-                            const [tahun, bulan, hari] = tanggalKey.split('-');
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                            
-                            // Gunakan data dari Firebase jika ada, atau dari key
-                            const tanggal = item.tanggal || tanggalFormatted;
-                            const jam = item.jam !== undefined ? 
-                                (typeof item.jam === 'number' ? item.jam.toString().padStart(2, '0') : item.jam) : 
-                                jamKey.padStart(2, '0');
-                            
-                            html += `<tr>
-                                <td>${tanggal}</td>
-                                <td>${jam}:00</td>
-                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-                }
+                // Konversi tanggal ke format DD-MM-YYYY
+                const [tahun, bulan, hari] = tanggalKey.split('-');
+                const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                
+                // Format jam dengan leading zero
+                const jamFormatted = jamKey.toString().padStart(2, '0');
+                
+                html += `<tr>
+                    <td>${item.tanggal || tanggalFormatted}</td>
+                    <td>${jamFormatted}:00</td>
+                    <td>${formatNumber(item.total_energi, 3)} kWh</td>
+                    <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
+                    <td>${formatCurrency(item.total_biaya)}</td>
+                </tr>`;
             });
+            tbody.innerHTML = html;
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
+        }
+    } else {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
+    }
+});
 
             // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
             const dailyRef = database.ref('monitoring/monitoring/history_daily');
@@ -1481,3 +1496,4 @@
     </script>
 </body>
 </html>
+
