@@ -658,7 +658,7 @@
             }
 
             // LISTEN FOR LIVE DATA - PERBAIKAN PATH
-            const liveRef = database.ref('monitoring/history/live');
+            const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 console.log('Live data received:', data); // Debugging
@@ -801,5 +801,6 @@
     </script>
 </body>
 </html>
+
 
 
