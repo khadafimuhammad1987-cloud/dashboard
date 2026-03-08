@@ -592,8 +592,6 @@
         <div class="sidebar-brand">
             <h3><i class="fas fa-chart-pie"></i> Energy Monitor</h3>
             <small>Professional Dashboard</small>
-            <small>By MUHAMMAD FAISAL KHADAFI</small>
-            <small>VERSION 1.0</small>
         </div>
         
         <ul class="sidebar-menu">
@@ -657,7 +655,7 @@
             </div>
         </div>
 
-        <!-- Dashboard Section -->
+        <!-- Dashboard Section (Default View) -->
         <div id="dashboard-section">
             <!-- Control Panel -->
             <div class="control-card">
@@ -1004,23 +1002,30 @@
         const database = firebase.database();
 
         // ALLOWED UIDs
-        const ALLOWED_UIDS = ['7wrnhaDpsLRmPXPo9nV9ICSpY582'];
+        const ALLOWED_UIDS = [
+            '7wrnhaDpsLRmPXPo9nV9ICSpY582'
+        ];
 
         // Check authentication
         auth.onAuthStateChanged((user) => {
             if (!user) {
+                console.log('No user, redirecting to login');
                 window.location.href = 'index.html';
             } else if (!ALLOWED_UIDS.includes(user.uid)) {
+                console.log('Unauthorized user:', user.uid);
                 auth.signOut().then(() => {
                     window.location.href = 'index.html';
                 });
             } else {
+                console.log('Authorized user:', user.uid);
                 loadDashboard(user);
             }
         });
 
         function loadDashboard(user) {
-            document.getElementById('userEmail').textContent = user.email.split('@')[0];
+            // Display user info
+            const userEmail = user.email || 'Admin';
+            document.getElementById('userEmail').textContent = userEmail.split('@')[0];
             
             const userRole = sessionStorage.getItem('userRole') || 'admin';
             document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userRole}`;
@@ -1029,6 +1034,7 @@
             const ctx1 = document.getElementById('powerChart').getContext('2d');
             const ctx2 = document.getElementById('distributionChart').getContext('2d');
 
+            // Power Chart
             const powerChart = new Chart(ctx1, {
                 type: 'line',
                 data: {
@@ -1078,6 +1084,7 @@
                 }
             });
 
+            // Distribution Chart
             const distributionChart = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
@@ -1150,13 +1157,6 @@
                 return Number(value).toFixed(decimals);
             }
 
-            // Helper function untuk mendapatkan nama bulan
-            function getNamaBulan(bulan) {
-                const bulanArray = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
-                                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                return bulanArray[bulan - 1] || 'Unknown';
-            }
-
             // ===== LISTEN FOR LIVE DATA =====
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
@@ -1184,6 +1184,7 @@
                         biayaTotal.classList.remove('negative');
                     }
 
+                    // Update power chart
                     const timeLabel = data.time ? data.time.split(' ')[1] : new Date().toLocaleTimeString();
                     
                     if (powerChart.data.labels.length > 20) {
@@ -1195,6 +1196,7 @@
                     powerChart.data.datasets[0].data.push(data.power || 0);
                     powerChart.update();
 
+                    // Update distribution chart
                     if (data.pf) {
                         const active = data.pf * 100;
                         const reactive = 100 - active;
@@ -1233,98 +1235,30 @@
                 if (data) {
                     const historyArray = Object.entries(data)
                         .filter(([key]) => key !== 'live' && key.length > 0)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => {
-                            if (a.time && b.time) {
-                                return b.time.localeCompare(a.time);
-                            }
-                            return b.key.localeCompare(a.key);
-                        })
+                        .sort((a, b) => b[0].localeCompare(a[0]))
                         .slice(0, 50);
                     
                     if (historyArray.length > 0) {
                         let html = '';
-                        historyArray.forEach(item => {
+                        historyArray.forEach(([key, value]) => {
                             html += `<tr>
-                                <td>${item.time || item.key}</td>
-                                <td>${formatNumber(item.voltage, 1)} V</td>
-                                <td>${formatNumber(item.current, 2)} A</td>
-                                <td>${formatNumber(item.power, 1)} W</td>
-                                <td>${formatNumber(item.frequency, 0)} Hz</td>
-                                <td>${formatNumber(item.pf, 2)}</td>
-                                <td>${formatCurrency(item.biaya_per_jam)}</td>
+                                <td>${value.time || key}</td>
+                                <td>${formatNumber(value.voltage, 1)} V</td>
+                                <td>${formatNumber(value.current, 2)} A</td>
+                                <td>${formatNumber(value.power, 1)} W</td>
+                                <td>${formatNumber(value.frequency, 0)} Hz</td>
+                                <td>${formatNumber(value.pf, 2)}</td>
+                                <td>${formatCurrency(value.biaya_per_jam)}</td>
                             </tr>`;
                         });
                         tbody.innerHTML = html;
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data real-time</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
                     }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
                 }
             });
 
-            // ===== LOAD HOURLY HISTORY DENGAN SORTING YANG BENAR =====
-            const hourlyRef = database.ref('monitoring/monitoring/history_hourly');
-            hourlyRef.limitToLast(50).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.getElementById('hourly-history-table');
-                
-                if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
-                    
-                    // SORTING berdasarkan key (YYYY-MM-DD_HH)
-                    historyArray.sort((a, b) => {
-                        return b.key.localeCompare(a.key); // Descending
-                    });
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
-                        let html = '';
-                        top50.forEach(item => {
-                            // Ekstrak tanggal dan jam dari key
-                            const keyParts = item.key.split('_');
-                            const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
-                            const jamKey = keyParts[1] || '00';
-                            
-                            // Konversi tanggal ke format DD-MM-YYYY
-                            const [tahun, bulan, hari] = tanggalKey.split('-');
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                            
-                            // Gunakan data dari Firebase jika ada, atau dari key
-                            const tanggal = item.tanggal || tanggalFormatted;
-                            const jam = item.jam !== undefined ? 
-                                (typeof item.jam === 'number' ? item.jam.toString().padStart(2, '0') : item.jam) : 
-                                jamKey.padStart(2, '0');
-                            
-                            html += `<tr>
-                                <td>${tanggal}</td>
-                                <td>${jam}:00</td>
-                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-                }
-            });
-
-            // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
-            // ===== LOAD HOURLY HISTORY DENGAN TIMESTAMP =====
+            // ===== LOAD HOURLY HISTORY =====
             const hourlyRef = database.ref('monitoring/history_hourly');
             hourlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -1354,48 +1288,65 @@
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
                 }
             });
-            // ===== LOAD MONTHLY HISTORY DENGAN SORTING YANG BENAR =====
-            const monthlyRef = database.ref('monitoring/monitoring/history_monthly');
+
+            // ===== LOAD DAILY HISTORY =====
+            const dailyRef = database.ref('monitoring/history_daily');
+            dailyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('daily-history-table');
+                
+                if (data) {
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50);
+                    
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
+                            html += `<tr>
+                                <td>${value.tanggal || key}</td>
+                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(value.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(value.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
+                }
+            });
+
+            // ===== LOAD MONTHLY HISTORY =====
+            const monthlyRef = database.ref('monitoring/history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('monthly-history-table');
                 
                 if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50);
                     
-                    // SORTING berdasarkan key (YYYY-MM)
-                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
+                    if (historyArray.length > 0) {
                         let html = '';
-                        top50.forEach(item => {
-                            // Ekstrak tahun dan bulan dari key
-                            const [tahun, bulan] = item.key.split('-');
-                            
-                            // Nama bulan dalam Bahasa Indonesia
-                            const namaBulan = getNamaBulan(parseInt(bulan));
-                            
+                        historyArray.forEach(([key, value]) => {
                             html += `<tr>
-                                <td>${item.nama_bulan || namaBulan}</td>
-                                <td>${item.tahun || tahun}</td>
-                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya)}</td>
+                                <td>${value.nama_bulan || '-'}</td>
+                                <td>${value.tahun || '-'}</td>
+                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(value.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(value.total_biaya)}</td>
                             </tr>`;
                         });
                         tbody.innerHTML = html;
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
                     }
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
                 }
             });
 
@@ -1413,14 +1364,6 @@
                     statusDiv.innerHTML = '<i class="fas fa-circle" style="color: #e74c3c;"></i><span>Terputus dari server</span>';
                 }
             });
-
-            // Load user data
-            database.ref('users/' + user.uid).once('value').then((snapshot) => {
-                const userData = snapshot.val();
-                if (userData && userData.role) {
-                    document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-shield me-1"></i>${userData.role}`;
-                }
-            });
         }
 
         // Section navigation
@@ -1428,6 +1371,7 @@
             document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
             event.target.closest('li').classList.add('active');
             
+            // Hide all sections
             document.getElementById('dashboard-section').style.display = 'none';
             document.getElementById('realtime-section').style.display = 'none';
             document.getElementById('hourly-section').style.display = 'none';
@@ -1435,17 +1379,26 @@
             document.getElementById('monthly-section').style.display = 'none';
             document.getElementById('settings-section').style.display = 'none';
             
-            document.getElementById(`${section}-section`).style.display = 'block';
-            
-            const titles = {
-                'dashboard': 'Dashboard Overview',
-                'realtime': 'Riwayat Real-time (50 data terakhir)',
-                'hourly': 'Riwayat Per Jam (50 data terakhir)',
-                'daily': 'Riwayat Per Hari (50 data terakhir)',
-                'monthly': 'Riwayat Per Bulan (50 data terakhir)',
-                'settings': 'Pengaturan'
-            };
-            document.getElementById('pageTitle').textContent = titles[section];
+            // Show selected section
+            if (section === 'dashboard') {
+                document.getElementById('dashboard-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Dashboard Overview';
+            } else if (section === 'realtime') {
+                document.getElementById('realtime-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Real-time';
+            } else if (section === 'hourly') {
+                document.getElementById('hourly-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Per Jam';
+            } else if (section === 'daily') {
+                document.getElementById('daily-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Per Hari';
+            } else if (section === 'monthly') {
+                document.getElementById('monthly-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Riwayat Per Bulan';
+            } else if (section === 'settings') {
+                document.getElementById('settings-section').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Pengaturan';
+            }
         };
 
         // Toggle pump
@@ -1458,6 +1411,7 @@
         window.updateTarif = function() {
             const tarif = document.getElementById('tarifSetting').value;
             alert('Pengaturan disimpan (Rp ' + tarif + '/kWh)');
+            // Implementasi update tarif ke database jika diperlukan
         };
 
         // Logout
@@ -1470,6 +1424,4 @@
     </script>
 </body>
 </html>
-
-
 
