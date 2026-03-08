@@ -9,146 +9,309 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
         }
+        
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+        }
+        
         .login-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 40px;
             width: 100%;
-            max-width: 400px;
+            animation: slideUp 0.5s ease;
         }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .login-header {
             text-align: center;
             margin-bottom: 30px;
         }
+        
+        .login-header .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .login-header .icon-wrapper i {
+            font-size: 40px;
+            color: white;
+        }
+        
         .login-header h2 {
             color: #333;
-            font-weight: 600;
+            font-weight: 700;
+            margin-bottom: 10px;
         }
+        
         .login-header p {
             color: #666;
             font-size: 14px;
         }
-        .form-control {
-            height: 50px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            padding-left: 45px;
+        
+        .form-group {
+            position: relative;
             margin-bottom: 20px;
         }
-        .input-icon {
-            position: relative;
-        }
-        .input-icon i {
+        
+        .form-group i {
             position: absolute;
             left: 15px;
-            top: 17px;
+            top: 50%;
+            transform: translateY(-50%);
             color: #667eea;
             font-size: 18px;
+            z-index: 1;
         }
+        
+        .form-control {
+            height: 55px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            padding-left: 45px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+        
         .btn-login {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            height: 50px;
-            border-radius: 10px;
+            height: 55px;
+            border-radius: 12px;
             font-weight: 600;
             font-size: 16px;
             border: none;
             width: 100%;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s;
+            margin-top: 10px;
         }
-        .btn-login:hover {
+        
+        .btn-login:hover:not(:disabled) {
             transform: translateY(-2px);
-            color: white;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
+        
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
         .alert {
-            border-radius: 10px;
+            border-radius: 12px;
+            padding: 15px 20px;
             margin-bottom: 20px;
             display: none;
+            animation: slideDown 0.3s ease;
         }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-danger {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+        
+        .alert-success {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+        }
+        
         .register-link {
             text-align: center;
-            margin-top: 20px;
-            color: #666;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
         }
+        
+        .register-link p {
+            color: #666;
+            margin-bottom: 0;
+        }
+        
         .register-link a {
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s;
         }
+        
         .register-link a:hover {
+            color: #764ba2;
             text-decoration: underline;
+        }
+        
+        .spinner-border {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px 30px;
+        }
+        
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .modal-footer {
+            border-top: 2px solid #f0f0f0;
+            padding: 20px 30px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        select.form-control {
+            padding-left: 15px;
+        }
+        
+        .text-muted {
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <div class="login-header">
-            <i class="fas fa-chart-line fa-3x" style="color: #667eea; margin-bottom: 20px;"></i>
-            <h2>Monitoring Dashboard</h2>
-            <p>Silakan login untuk melanjutkan</p>
-        </div>
-        
-        <div class="alert alert-danger" id="errorAlert" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <span id="errorMessage"></span>
-        </div>
-
-        <div class="alert alert-success" id="successAlert" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <span id="successMessage"></span>
-        </div>
-
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="input-icon">
-                <i class="fas fa-envelope"></i>
-                <input type="email" class="form-control" id="email" placeholder="Email" required>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="icon-wrapper">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h2>Selamat Datang</h2>
+                <p>Silakan login untuk mengakses dashboard monitoring</p>
             </div>
-            <div class="input-icon">
-                <i class="fas fa-lock"></i>
-                <input type="password" class="form-control" id="password" placeholder="Password" required>
+            
+            <div class="alert alert-danger" id="errorAlert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorMessage"></span>
             </div>
-            <button type="submit" class="btn-login" id="loginBtn">
-                <span id="loginText">Login</span>
-                <span id="loginSpinner" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i> Loading...
-                </span>
-            </button>
-        </form>
 
-        <div class="register-link">
-            <p>Belum punya akun? <a href="#" onclick="showRegister()">Daftar disini</a></p>
+            <div class="alert alert-success" id="successAlert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="successMessage"></span>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="form-control" id="email" placeholder="Alamat Email" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                </div>
+                
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="loginText">Login</span>
+                    <span id="loginSpinner" style="display: none;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </span>
+                </button>
+            </form>
+
+            <div class="register-link">
+                <p>Belum punya akun? <a onclick="showRegister()">Daftar disini</a></p>
+            </div>
         </div>
     </div>
 
     <!-- Register Modal -->
-    <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Register Akun Baru</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Registrasi Akun Baru
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="registerForm" onsubmit="handleRegister(event)">
                         <div class="mb-3">
                             <label for="regEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="regEmail" required>
+                            <input type="email" class="form-control" id="regEmail" required placeholder="contoh@email.com">
                         </div>
+                        
                         <div class="mb-3">
                             <label for="regPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="regPassword" required minlength="6">
-                            <small class="text-muted">Minimal 6 karakter</small>
+                            <input type="password" class="form-control" id="regPassword" required minlength="6" placeholder="Minimal 6 karakter">
+                            <small class="text-muted">Password minimal 6 karakter</small>
                         </div>
+                        
                         <div class="mb-3">
                             <label for="regRole" class="form-label">Role</label>
                             <select class="form-control" id="regRole">
@@ -156,8 +319,11 @@
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Register</button>
                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" form="registerForm" class="btn btn-primary">Daftar</button>
                 </div>
             </div>
         </div>
@@ -191,7 +357,6 @@
         // Check if user is already logged in
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // User is logged in, redirect to dashboard
                 window.location.href = 'dashboard.html';
             }
         });
@@ -206,38 +371,29 @@
             const loginText = document.getElementById('loginText');
             const loginSpinner = document.getElementById('loginSpinner');
             
-            // Show loading
             loginText.style.display = 'none';
             loginSpinner.style.display = 'inline-block';
             loginBtn.disabled = true;
             
-            // Hide alerts
-            document.getElementById('errorAlert').style.display = 'none';
-            document.getElementById('successAlert').style.display = 'none';
+            hideAlerts();
             
-            // Sign in with email and password
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     const user = userCredential.user;
                     
-                    // Check user role from database
                     return database.ref('users/' + user.uid).once('value')
                         .then((snapshot) => {
                             const userData = snapshot.val();
                             if (userData) {
-                                // Store user data in session
                                 sessionStorage.setItem('userRole', userData.role || 'user');
                                 sessionStorage.setItem('userEmail', user.email);
                                 
-                                // Show success message
                                 showSuccess('Login berhasil! Mengalihkan...');
                                 
-                                // Redirect to dashboard
                                 setTimeout(() => {
                                     window.location.href = 'dashboard.html';
                                 }, 1500);
                             } else {
-                                // If no role data, create default
                                 return database.ref('users/' + user.uid).set({
                                     email: user.email,
                                     role: 'user',
@@ -256,12 +412,10 @@
                         });
                 })
                 .catch((error) => {
-                    // Hide loading
                     loginText.style.display = 'inline-block';
                     loginSpinner.style.display = 'none';
                     loginBtn.disabled = false;
                     
-                    // Show error
                     let errorMessage = 'Login gagal. ';
                     switch (error.code) {
                         case 'auth/user-not-found':
@@ -297,12 +451,10 @@
             const password = document.getElementById('regPassword').value;
             const role = document.getElementById('regRole').value;
             
-            // Create user with email and password
             auth.createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     const user = userCredential.user;
                     
-                    // Save user role to database
                     return database.ref('users/' + user.uid).set({
                         email: user.email,
                         role: role,
@@ -310,19 +462,16 @@
                     });
                 })
                 .then(() => {
-                    // Close modal
                     bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-                    
-                    // Show success message
                     showSuccess('Registrasi berhasil! Silakan login.');
-                    
-                    // Clear form
                     document.getElementById('registerForm').reset();
                 })
                 .catch((error) => {
                     let errorMessage = 'Registrasi gagal. ';
                     if (error.code === 'auth/email-already-in-use') {
                         errorMessage += 'Email sudah digunakan.';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage += 'Password terlalu lemah.';
                     } else {
                         errorMessage += error.message;
                     }
@@ -330,27 +479,28 @@
                 });
         };
 
-        // Show error message
+        function hideAlerts() {
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('successAlert').style.display = 'none';
+        }
+
         function showError(message) {
             const errorAlert = document.getElementById('errorAlert');
             const errorMessage = document.getElementById('errorMessage');
             errorMessage.textContent = message;
             errorAlert.style.display = 'block';
             
-            // Auto hide after 5 seconds
             setTimeout(() => {
                 errorAlert.style.display = 'none';
             }, 5000);
         }
 
-        // Show success message
         function showSuccess(message) {
             const successAlert = document.getElementById('successAlert');
             const successMessage = document.getElementById('successMessage');
             successMessage.textContent = message;
             successAlert.style.display = 'block';
             
-            // Auto hide after 3 seconds
             setTimeout(() => {
                 successAlert.style.display = 'none';
             }, 3000);
