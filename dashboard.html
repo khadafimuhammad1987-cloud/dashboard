@@ -1325,33 +1325,35 @@
 
             // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
             // ===== LOAD HOURLY HISTORY DENGAN TIMESTAMP =====
-const hourlyRef = database.ref('monitoring/history_hourly');
-hourlyRef.limitToLast(50).on('value', (snapshot) => {
-    const data = snapshot.val();
-    const tbody = document.getElementById('hourly-history-table');
-    
-    if (data) {
-        const historyArray = Object.entries(data)
-            .map(([key, value]) => ({ key, ...value }))
-            .sort((a, b) => {
-                // Priority 1: Gunakan timestamp jika ada
-                if (a.timestamp && b.timestamp) {
-                    return b.timestamp - a.timestamp;
-                }
-                // Priority 2: Fallback ke sorting manual
-                const aKeyParts = a.key.split('_');
-                const bKeyParts = b.key.split('_');
+            const hourlyRef = database.ref('monitoring/history_hourly');
+            hourlyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('hourly-history-table');
                 
-                if (aKeyParts[0] !== bKeyParts[0]) {
-                    return bKeyParts[0].localeCompare(aKeyParts[0]);
+                if (data) {
+                    const historyArray = Object.entries(data)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .slice(0, 50);
+                    
+                    if (historyArray.length > 0) {
+                        let html = '';
+                        historyArray.forEach(([key, value]) => {
+                            html += `<tr>
+                                <td>${value.tanggal || '-'}</td>
+                                <td>${value.jam || '-'}:00</td>
+                                <td>${formatNumber(value.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(value.rata_rata_daya, 1)} W</td>
+                                <td>${formatCurrency(value.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
                 }
-                return parseInt(bKeyParts[1]) - parseInt(aKeyParts[1]);
-            })
-            .slice(0, 50);
-        
-        // Tampilkan data...
-    }
-});
+            });
             // ===== LOAD MONTHLY HISTORY DENGAN SORTING YANG BENAR =====
             const monthlyRef = database.ref('monitoring/monitoring/history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
@@ -1468,5 +1470,6 @@ hourlyRef.limitToLast(50).on('value', (snapshot) => {
     </script>
 </body>
 </html>
+
 
 
