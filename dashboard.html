@@ -1061,4 +1061,26 @@
             // Connection status
             database.ref('.info/connected').on('value', (snap) => {
                 const statusDiv = document.getElementById('connectionStatus');
-                if (
+                if (snap.val()) {
+                    statusDiv.style.display = 'flex';
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                    }, 3000);
+                }
+            });
+        }
+
+        window.togglePump = function() {
+            const pumpRef = database.ref('monitoring/control/pompa');
+            pumpRef.transaction((current) => !current);
+        };
+
+        window.logout = function() {
+            auth.signOut().then(() => {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            });
+        };
+    </script>
+</body>
+</html>
