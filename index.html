@@ -244,12 +244,12 @@
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" class="form-control" id="email" placeholder="Alamat Email" required>
+                    <input type="email" class="form-control" id="email" placeholder="Alamat Email" value="cekitet23@gmail.com" required>
                 </div>
                 
                 <div class="form-group">
                     <i class="fas fa-lock"></i>
-                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <input type="password" class="form-control" id="password" placeholder="Password" value="Matahariku23" required>
                 </div>
                 
                 <button type="submit" class="btn-login" id="loginBtn">
@@ -301,12 +301,12 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        // ALLOWED UIDs - Hanya UID ini yang bisa mengakses
+        // ALLOWED UIDs - Hanya UID ini yang bisa mengakses (sesuai rules)
         const ALLOWED_UID = '7wrnhaDpsLRmPXPo9nV9ICSpY582';
         
-        // Optional: Multiple allowed UIDs
+        // Multiple allowed UIDs (jika perlu tambah)
         const ALLOWED_UIDS = [
-            '7wrnhaDpsLRmPXPo9nV9ICSpY582'  // Tambah UID lain jika perlu
+            '7wrnhaDpsLRmPXPo9nV9ICSpY582'  // UID admin utama
         ];
 
         // Check if user is already logged in
@@ -315,6 +315,12 @@
                 // Cek apakah UID user termasuk yang diizinkan
                 if (ALLOWED_UIDS.includes(user.uid)) {
                     console.log('User authorized:', user.uid);
+                    
+                    // Update lastLogin di database
+                    if (Firebase.ready) {
+                        database.ref('users/' + user.uid + '/lastLogin').set(new Date().toISOString());
+                    }
+                    
                     window.location.href = 'dashboard.html';
                 } else {
                     // Jika UID tidak diizinkan, logout paksa
@@ -345,21 +351,27 @@
                 .then((userCredential) => {
                     const user = userCredential.user;
                     
-                    // CEK APAKAH UID DIIZINKAN
+                    // CEK APAKAH UID DIIZINKAN (sesuai rules)
                     if (!ALLOWED_UIDS.includes(user.uid)) {
                         // Jika tidak diizinkan, logout dan tampilkan error
                         auth.signOut();
                         throw new Error('unauthorized');
                     }
                     
-                    // Jika diizinkan, lanjutkan
+                    // Jika diizinkan, cek data user di database
                     return database.ref('users/' + user.uid).once('value')
                         .then((snapshot) => {
                             const userData = snapshot.val();
+                            
+                            // Update last login
+                            database.ref('users/' + user.uid + '/lastLogin').set(new Date().toISOString());
+                            
                             if (userData) {
-                                sessionStorage.setItem('userRole', userData.role || 'user');
+                                // Simpan data user di session storage
+                                sessionStorage.setItem('userRole', userData.role || 'admin');
                                 sessionStorage.setItem('userEmail', user.email);
                                 sessionStorage.setItem('userUID', user.uid);
+                                sessionStorage.setItem('userDisplayName', userData.displayName || 'Admin');
                                 
                                 showSuccess('Login berhasil! Mengalihkan...');
                                 
@@ -367,21 +379,29 @@
                                     window.location.href = 'dashboard.html';
                                 }, 1500);
                             } else {
-                                return database.ref('users/' + user.uid).set({
+                                // Jika data user tidak ada di database, buat baru (sesuai rules)
+                                const newUserData = {
                                     email: user.email,
-                                    role: 'admin', // Set sebagai admin untuk UID utama
-                                    createdAt: new Date().toISOString()
-                                }).then(() => {
-                                    sessionStorage.setItem('userRole', 'admin');
-                                    sessionStorage.setItem('userEmail', user.email);
-                                    sessionStorage.setItem('userUID', user.uid);
-                                    
-                                    showSuccess('Login berhasil! Mengalihkan...');
-                                    
-                                    setTimeout(() => {
-                                        window.location.href = 'dashboard.html';
-                                    }, 1500);
-                                });
+                                    role: 'admin',
+                                    displayName: 'Admin Utama',
+                                    createdAt: new Date().toISOString(),
+                                    lastLogin: new Date().toISOString(),
+                                    photoURL: ''
+                                };
+                                
+                                return database.ref('users/' + user.uid).set(newUserData)
+                                    .then(() => {
+                                        sessionStorage.setItem('userRole', 'admin');
+                                        sessionStorage.setItem('userEmail', user.email);
+                                        sessionStorage.setItem('userUID', user.uid);
+                                        sessionStorage.setItem('userDisplayName', 'Admin Utama');
+                                        
+                                        showSuccess('Login berhasil! Mengalihkan...');
+                                        
+                                        setTimeout(() => {
+                                            window.location.href = 'dashboard.html';
+                                        }, 1500);
+                                    });
                             }
                         });
                 })
@@ -411,6 +431,9 @@
                             case 'auth/too-many-requests':
                                 errorMessage += 'Terlalu banyak percobaan. Coba lagi nanti.';
                                 break;
+                            case 'auth/network-request-failed':
+                                errorMessage += 'Koneksi internet bermasalah.';
+                                break;
                             default:
                                 errorMessage += error.message;
                         }
@@ -418,19 +441,21 @@
                     
                     showError(errorMessage);
                     
-                    // Tampilkan info UID untuk debugging (hanya jika error)
+                    // Tampilkan info untuk debugging
                     if (error.code === 'auth/user-not-found') {
-                        // Do nothing
-                    } else if (error.email) {
-                        showInfo('Jika Anda yakin memiliki akses, hubungi administrator.');
+                        showInfo('Email tidak ditemukan. Gunakan email: cekitet23@gmail.com');
+                    } else if (error.code === 'auth/wrong-password') {
+                        showInfo('Password salah. Gunakan password: Matahariku23');
                     }
                 });
         };
 
-        // Fungsi untuk mengecek akses sebelum register (optional)
+        // Fungsi untuk mengecek akses
         window.checkAccess = function() {
             const email = document.getElementById('email').value;
-            // Bisa ditambahkan logika untuk mengecek email tertentu
+            if (email === 'cekitet23@gmail.com') {
+                showInfo('Email terdaftar. Silakan masukkan password.');
+            }
         };
 
         function hideAlerts() {
@@ -472,19 +497,15 @@
             }, 5000);
         }
 
-        // Optional: Menampilkan UID saat ini (untuk debugging)
-        function displayCurrentUID() {
-            const user = auth.currentUser;
-            if (user) {
-                document.getElementById('uidInfo').style.display = 'block';
-                document.getElementById('uidDisplay').textContent = 'UID: ' + user.uid;
-            }
-        }
+        // Fungsi untuk registrasi (dihapus karena hanya satu akun)
+        // Tidak ada tombol register sesuai rules yang hanya mengizinkan satu UID
 
-        // Hapus fungsi register yang tidak diperlukan
-        // Karena kita hanya ingin satu akun yang bisa akses
-        console.log('Login system initialized - Restricted access mode');
+        // Auto-fill untuk memudahkan login
+        window.addEventListener('load', function() {
+            // Bisa diisi otomatis atau tidak sesuai kebutuhan
+            console.log('Login page loaded - Restricted access mode');
+            console.log('Allowed UID:', ALLOWED_UID);
+        });
     </script>
 </body>
 </html>
-
