@@ -93,9 +93,41 @@
             font-weight: 500;
         }
 
-        .user-profile {
+        /* Logout Button di Sidebar */
+        .sidebar-logout {
             position: absolute;
             bottom: 25px;
+            left: 20px;
+            right: 20px;
+        }
+
+        .btn-sidebar-logout {
+            width: 100%;
+            padding: 12px;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: white;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-sidebar-logout:hover {
+            background: rgba(231, 76, 60, 0.3);
+            border-color: rgba(231, 76, 60, 0.5);
+        }
+
+        .btn-sidebar-logout i {
+            margin-right: 10px;
+        }
+
+        .user-profile {
+            position: absolute;
+            bottom: 95px;
             left: 20px;
             right: 20px;
             padding: 15px;
@@ -116,6 +148,7 @@
             margin: 0;
             font-weight: 600;
             font-size: 0.9rem;
+            color: white;
         }
 
         .user-profile .user-info small {
@@ -325,6 +358,32 @@
             font-size: 0.8rem;
         }
 
+        /* Summary Card */
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .summary-card h6 {
+            opacity: 0.9;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .summary-card h2 {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-card small {
+            opacity: 0.8;
+        }
+
         /* Chart Cards */
         .chart-card {
             background: white;
@@ -424,32 +483,6 @@
             background: #f8fafc;
         }
 
-        /* Summary Cards */
-        .summary-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px;
-            padding: 25px;
-            color: white;
-            margin-bottom: 25px;
-        }
-
-        .summary-card h6 {
-            opacity: 0.9;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-        }
-
-        .summary-card h2 {
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .summary-card small {
-            opacity: 0.8;
-        }
-
         /* Loading Spinner */
         .spinner {
             display: inline-block;
@@ -485,6 +518,11 @@
             color: #2ecc71;
         }
 
+        /* Negative values */
+        .negative {
+            color: #e74c3c !important;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -504,11 +542,6 @@
             .cost-value {
                 font-size: 1.3rem;
             }
-        }
-
-        /* Negative values */
-        .negative {
-            color: #e74c3c;
         }
     </style>
 </head>
@@ -537,12 +570,9 @@
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </li>
-            <li>
-                <i class="fas fa-question-circle"></i>
-                <span>Help</span>
-            </li>
         </ul>
         
+        <!-- User Profile -->
         <div class="user-profile">
             <div class="d-flex align-items-center">
                 <img src="https://ui-avatars.com/api/?name=Admin&background=3498db&color=fff&size=40" alt="User">
@@ -552,6 +582,14 @@
                 </div>
             </div>
         </div>
+
+        <!-- Logout Button -->
+        <div class="sidebar-logout">
+            <button class="btn-sidebar-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -560,7 +598,7 @@
         <div class="top-bar">
             <div class="page-title">
                 <h4>Dashboard Overview</h4>
-                <small>Monitor energi real-time</small>
+                <small id="userRole">Loading...</small>
             </div>
             <div class="date-time" id="current-time">
                 <i class="fas fa-clock"></i>
@@ -807,23 +845,32 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        // ALLOWED UIDs
+        // ALLOWED UIDs - Sama dengan di halaman login
         const ALLOWED_UIDS = ['7wrnhaDpsLRmPXP0nV9ICSpY582'];
 
         // Check authentication
         auth.onAuthStateChanged((user) => {
             if (!user) {
+                console.log('No user, redirecting to login');
                 window.location.href = 'index.html';
             } else if (!ALLOWED_UIDS.includes(user.uid)) {
-                auth.signOut();
-                window.location.href = 'index.html';
+                console.log('Unauthorized user:', user.uid);
+                auth.signOut().then(() => {
+                    window.location.href = 'index.html';
+                });
             } else {
+                console.log('Authorized user:', user.uid);
                 loadDashboard(user);
             }
         });
 
         function loadDashboard(user) {
+            // Display user info
             document.getElementById('userEmail').textContent = user.email.split('@')[0];
+            
+            // Get user role from session storage (set during login)
+            const userRole = sessionStorage.getItem('userRole') || 'admin';
+            document.getElementById('userRole').textContent = userRole;
 
             // Initialize Charts
             const ctx1 = document.getElementById('powerChart').getContext('2d');
@@ -955,11 +1002,11 @@
                 return Number(value).toFixed(decimals);
             }
 
-            // Listen for live data
+            // Listen for live data - PATH: monitoring/live
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                console.log('Live data:', data);
+                console.log('Live data received:', data);
                 
                 if (data) {
                     // Update basic stats
@@ -984,8 +1031,7 @@
                     }
 
                     // Update power chart
-                    const now = new Date();
-                    const timeLabel = now.toLocaleTimeString();
+                    const timeLabel = data.time ? data.time.split(' ')[1] : new Date().toLocaleTimeString();
                     
                     if (powerChart.data.labels.length > 20) {
                         powerChart.data.labels.shift();
@@ -1003,10 +1049,14 @@
                         distributionChart.data.datasets[0].data = [active, reactive];
                         distributionChart.update();
                     }
+                } else {
+                    console.log('No live data available');
                 }
+            }, (error) => {
+                console.error('Error reading live data:', error);
             });
 
-            // Listen for pump control
+            // Listen for pump control - PATH: monitoring/control/pompa
             const pumpRef = database.ref('monitoring/control/pompa');
             pumpRef.on('value', (snapshot) => {
                 const status = snapshot.val();
@@ -1018,23 +1068,27 @@
                     pumpStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>AKTIF';
                     toggleBtn.className = 'btn-pump on';
                     toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
-                } else {
+                } else if (status === false) {
                     pumpStatus.className = 'pump-status off';
                     pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
                     toggleBtn.className = 'btn-pump off';
                     toggleBtn.innerHTML = '<i class="fas fa-play me-2"></i>Hidupkan Pompa';
+                } else {
+                    pumpStatus.className = 'pump-status off';
+                    pumpStatus.innerHTML = '<i class="fas fa-question-circle me-2"></i>TIDAK DIKETAHUI';
                 }
             });
 
-            // Load history
+            // Load history - PATH: monitoring/history (filter out live)
             const historyRef = database.ref('monitoring/history');
             historyRef.limitToLast(10).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('history-table');
                 
                 if (data) {
+                    // Filter out 'live' node and sort by key (timestamp) descending
                     const historyArray = Object.entries(data)
-                        .filter(([key]) => key !== 'live')
+                        .filter(([key]) => key !== 'live' && key.length > 0)
                         .sort((a, b) => b[0].localeCompare(a[0]))
                         .slice(0, 10);
                     
@@ -1053,32 +1107,66 @@
                         });
                         tbody.innerHTML = html;
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data history</td></tr>';
                     }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
                 }
+            }, (error) => {
+                console.error('Error reading history:', error);
+                document.getElementById('history-table').innerHTML = 
+                    '<tr><td colspan="7" class="text-center text-danger">Error loading history</td></tr>';
             });
 
             // Connection status
             database.ref('.info/connected').on('value', (snap) => {
                 const statusDiv = document.getElementById('connectionStatus');
-                if (snap.val()) {
+                if (snap.val() === true) {
                     statusDiv.style.display = 'flex';
+                    statusDiv.innerHTML = '<i class="fas fa-circle"></i><span>Terhubung ke server</span>';
                     setTimeout(() => {
                         statusDiv.style.display = 'none';
                     }, 3000);
+                } else {
+                    statusDiv.style.display = 'flex';
+                    statusDiv.innerHTML = '<i class="fas fa-circle" style="color: #e74c3c;"></i><span>Terputus dari server</span>';
+                }
+            });
+
+            // Load user data from database
+            database.ref('users/' + user.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData && userData.role) {
+                    document.getElementById('userRole').textContent = userData.role;
                 }
             });
         }
 
+        // Toggle pump function
         window.togglePump = function() {
             const pumpRef = database.ref('monitoring/control/pompa');
-            pumpRef.transaction((current) => !current);
+            pumpRef.transaction((currentStatus) => {
+                return !currentStatus;
+            }).then(() => {
+                console.log('Pump toggled successfully');
+            }).catch((error) => {
+                console.error('Error toggling pump:', error);
+                alert('Gagal mengubah status pompa. Silakan coba lagi.');
+            });
         };
 
+        // Logout function
         window.logout = function() {
             auth.signOut().then(() => {
-                sessionStorage.clear();
+                // Clear session storage
+                sessionStorage.removeItem('userRole');
+                sessionStorage.removeItem('userEmail');
+                sessionStorage.removeItem('userUID');
+                
+                console.log('Logged out successfully');
                 window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
             });
         };
     </script>
