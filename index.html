@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Monitoring Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            width: 100%;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .login-header .icon-wrapper i {
+            font-size: 40px;
+            color: white;
+        }
+        
+        .login-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 18px;
+            z-index: 1;
+        }
+        
+        .form-control {
+            height: 55px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            padding-left: 45px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            height: 55px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-danger {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+        
+        .alert-success {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .register-link p {
+            color: #666;
+            margin-bottom: 0;
+        }
+        
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .register-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        .spinner-border {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px 30px;
+        }
+        
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .modal-footer {
+            border-top: 2px solid #f0f0f0;
+            padding: 20px 30px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        select.form-control {
+            padding-left: 15px;
+        }
+        
+        .text-muted {
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="icon-wrapper">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h2>Selamat Datang</h2>
+                <p>Silakan login untuk mengakses dashboard monitoring</p>
+            </div>
+            
+            <div class="alert alert-danger" id="errorAlert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <div class="alert alert-success" id="successAlert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="successMessage"></span>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="form-control" id="email" placeholder="Alamat Email" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                </div>
+                
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="loginText">Login</span>
+                    <span id="loginSpinner" style="display: none;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </span>
+                </button>
+            </form>
+
+            <div class="register-link">
+                <p>Belum punya akun? <a onclick="showRegister()">Daftar disini</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Registrasi Akun Baru
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm" onsubmit="handleRegister(event)">
+                        <div class="mb-3">
+                            <label for="regEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="regEmail" required placeholder="contoh@email.com">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="regPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="regPassword" required minlength="6" placeholder="Minimal 6 karakter">
+                            <small class="text-muted">Password minimal 6 karakter</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="regRole" class="form-label">Role</label>
+                            <select class="form-control" id="regRole">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" form="registerForm" class="btn btn-primary">Daftar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbP7pZ6YlzAUNOSAfxtt0wRS8GIebZHq0",
+            authDomain: "rohmadafi.firebaseapp.com",
+            databaseURL: "https://rohmadafi-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rohmadafi",
+            storageBucket: "rohmadafi.firebasestorage.app",
+            messagingSenderId: "285538177933",
+            appId: "1:285538177933:web:e1f732b60209da0e28a3c4"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        // Check if user is already logged in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // Handle login
+        window.handleLogin = function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const loginText = document.getElementById('loginText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            loginText.style.display = 'none';
+            loginSpinner.style.display = 'inline-block';
+            loginBtn.disabled = true;
+            
+            hideAlerts();
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    return database.ref('users/' + user.uid).once('value')
+                        .then((snapshot) => {
+                            const userData = snapshot.val();
+                            if (userData) {
+                                sessionStorage.setItem('userRole', userData.role || 'user');
+                                sessionStorage.setItem('userEmail', user.email);
+                                
+                                showSuccess('Login berhasil! Mengalihkan...');
+                                
+                                setTimeout(() => {
+                                    window.location.href = 'dashboard.html';
+                                }, 1500);
+                            } else {
+                                return database.ref('users/' + user.uid).set({
+                                    email: user.email,
+                                    role: 'user',
+                                    createdAt: new Date().toISOString()
+                                }).then(() => {
+                                    sessionStorage.setItem('userRole', 'user');
+                                    sessionStorage.setItem('userEmail', user.email);
+                                    
+                                    showSuccess('Login berhasil! Mengalihkan...');
+                                    
+                                    setTimeout(() => {
+                                        window.location.href = 'dashboard.html';
+                                    }, 1500);
+                                });
+                            }
+                        });
+                })
+                .catch((error) => {
+                    loginText.style.display = 'inline-block';
+                    loginSpinner.style.display = 'none';
+                    loginBtn.disabled = false;
+                    
+                    let errorMessage = 'Login gagal. ';
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                            errorMessage += 'Email tidak terdaftar.';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage += 'Password salah.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage += 'Format email tidak valid.';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMessage += 'Akun telah dinonaktifkan.';
+                            break;
+                        default:
+                            errorMessage += error.message;
+                    }
+                    showError(errorMessage);
+                });
+        };
+
+        // Show register modal
+        window.showRegister = function() {
+            const modal = new bootstrap.Modal(document.getElementById('registerModal'));
+            modal.show();
+        };
+
+        // Handle register
+        window.handleRegister = function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    return database.ref('users/' + user.uid).set({
+                        email: user.email,
+                        role: role,
+                        createdAt: new Date().toISOString()
+                    });
+                })
+                .then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                    showSuccess('Registrasi berhasil! Silakan login.');
+                    document.getElementById('registerForm').reset();
+                })
+                .catch((error) => {
+                    let errorMessage = 'Registrasi gagal. ';
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorMessage += 'Email sudah digunakan.';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage += 'Password terlalu lemah.';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    showError(errorMessage);
+                });
+        };
+
+        function hideAlerts() {
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('successAlert').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'block';
+            
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successAlert = document.getElementById('successAlert');
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            successAlert.style.display = 'block';
+            
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
