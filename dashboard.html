@@ -1324,47 +1324,34 @@
             });
 
             // ===== LOAD DAILY HISTORY DENGAN SORTING YANG BENAR =====
-            const dailyRef = database.ref('monitoring/monitoring/history_daily');
-            dailyRef.limitToLast(50).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.getElementById('daily-history-table');
-                
-                if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
-                    
-                    // SORTING berdasarkan key (YYYY-MM-DD)
-                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
-                        let html = '';
-                        top50.forEach(item => {
-                            // Konversi key ke format tanggal
-                            const [tahun, bulan, hari] = item.key.split('-');
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                            
-                            html += `<tr>
-                                <td>${item.tanggal || tanggalFormatted}</td>
-                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
+            // ===== LOAD HOURLY HISTORY DENGAN TIMESTAMP =====
+const hourlyRef = database.ref('monitoring/history_hourly');
+hourlyRef.limitToLast(50).on('value', (snapshot) => {
+    const data = snapshot.val();
+    const tbody = document.getElementById('hourly-history-table');
+    
+    if (data) {
+        const historyArray = Object.entries(data)
+            .map(([key, value]) => ({ key, ...value }))
+            .sort((a, b) => {
+                // Priority 1: Gunakan timestamp jika ada
+                if (a.timestamp && b.timestamp) {
+                    return b.timestamp - a.timestamp;
                 }
-            });
-
+                // Priority 2: Fallback ke sorting manual
+                const aKeyParts = a.key.split('_');
+                const bKeyParts = b.key.split('_');
+                
+                if (aKeyParts[0] !== bKeyParts[0]) {
+                    return bKeyParts[0].localeCompare(aKeyParts[0]);
+                }
+                return parseInt(bKeyParts[1]) - parseInt(aKeyParts[1]);
+            })
+            .slice(0, 50);
+        
+        // Tampilkan data...
+    }
+});
             // ===== LOAD MONTHLY HISTORY DENGAN SORTING YANG BENAR =====
             const monthlyRef = database.ref('monitoring/monitoring/history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
@@ -1481,4 +1468,5 @@
     </script>
 </body>
 </html>
+
 
