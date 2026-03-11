@@ -1214,129 +1214,7 @@
             // Jalankan pengecekan reset setiap detik
             setInterval(checkAndResetCharts, 1000);
 
-            // ===== PERBAIKAN: PATH DATABASE UNTUK HISTORY =====
-            // HOURLY HISTORY - Perbaiki path
-            const hourlyRef = database.ref('monitoring/history_hourly'); // Hapus /monitoring/ kedua
-            hourlyRef.limitToLast(50).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.getElementById('hourly-history-table');
-                
-                if (data) {
-                    // Konversi object ke array dan sorting
-                    const historyArray = Object.entries(data)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => b.key.localeCompare(a.key))
-                        .slice(0, 50);
-                    
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(item => {
-                            // Parse key dengan format YYYY-MM-DD_HH
-                            const [datePart, hourPart] = item.key.split('_');
-                            const [tahun, bulan, hari] = datePart.split('-');
-                            
-                            // Format tanggal Indonesia
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                            
-                            // Ambil jam
-                            const jam = hourPart ? hourPart.padStart(2, '0') : '00';
-                            
-                            html += `<tr>
-                                <td>${tanggalFormatted}</td>
-                                <td>${jam}:00</td>
-                                <td>${formatNumber(item.total_energi || 0, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_daya || 0, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya || 0)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
-                }
-            });
-
-            // DAILY HISTORY - Perbaiki path
-            const dailyRef = database.ref('monitoring/history_daily'); // Hapus /monitoring/ kedua
-            dailyRef.limitToLast(50).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.getElementById('daily-history-table');
-                
-                if (data) {
-                    const historyArray = Object.entries(data)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => b.key.localeCompare(a.key))
-                        .slice(0, 50);
-                    
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(item => {
-                            const [tahun, bulan, hari] = item.key.split('-');
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                            
-                            html += `<tr>
-                                <td>${tanggalFormatted}</td>
-                                <td>${formatNumber(item.total_energi || 0, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_daya || 0, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya || 0)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
-                }
-            });
-
-            // MONTHLY HISTORY - Perbaiki path
-            const monthlyRef = database.ref('monitoring/history_monthly'); // Hapus /monitoring/ kedua
-            monthlyRef.limitToLast(50).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const tbody = document.getElementById('monthly-history-table');
-                
-                if (data) {
-                    const historyArray = Object.entries(data)
-                        .map(([key, value]) => ({
-                            key: key,
-                            ...value
-                        }))
-                        .sort((a, b) => b.key.localeCompare(a.key))
-                        .slice(0, 50);
-                    
-                    if (historyArray.length > 0) {
-                        let html = '';
-                        historyArray.forEach(item => {
-                            const [tahun, bulan] = item.key.split('-');
-                            const namaBulan = getNamaBulan(parseInt(bulan));
-                            
-                            html += `<tr>
-                                <td>${namaBulan}</td>
-                                <td>${tahun}</td>
-                                <td>${formatNumber(item.total_energi || 0, 3)} kWh</td>
-                                <td>${formatNumber(item.rata_rata_daya || 0, 1)} W</td>
-                                <td>${formatCurrency(item.total_biaya || 0)}</td>
-                            </tr>`;
-                        });
-                        tbody.innerHTML = html;
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
-                }
-            });
-
-            // ===== PERBAIKAN: LISTENER LIVE DATA =====
+            // ===== PERBAIKAN: LISTENER LIVE DATA (TAMBAHKAN Math.abs) =====
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -1351,7 +1229,7 @@
                     document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
                     document.getElementById('update_time').textContent = data.time || '-';
                     
-                    // Update biaya - pastikan nilai positif
+                    // Update biaya - pastikan nilai positif dengan Math.abs
                     document.getElementById('biaya_per_jam').textContent = formatCurrency(Math.abs(data.biaya_per_jam || 0));
                     document.getElementById('biaya_per_hari').textContent = formatCurrency(Math.abs(data.biaya_per_hari || 0));
                     document.getElementById('biaya_per_bulan').textContent = formatCurrency(Math.abs(data.biaya_per_bulan || 0));
@@ -1443,6 +1321,149 @@
                     }
                 } else {
                     tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data</td></tr>';
+                }
+            });
+
+            // ===== LOAD HOURLY HISTORY (PATH TIDAK DIUBAH) =====
+            const hourlyRef = database.ref('monitoring/monitoring/history_hourly'); // PATH TETAP SEPERTI ASLINYA
+            hourlyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('hourly-history-table');
+                
+                if (data) {
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
+                    
+                    // SORTING berdasarkan key (YYYY-MM-DD_HH)
+                    historyArray.sort((a, b) => {
+                        return b.key.localeCompare(a.key); // Descending
+                    });
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
+                        let html = '';
+                        top50.forEach(item => {
+                            // Ekstrak tanggal dan jam dari key
+                            const keyParts = item.key.split('_');
+                            const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
+                            const jamKey = keyParts[1] || '00';
+                            
+                            // Konversi tanggal ke format DD-MM-YYYY
+                            const [tahun, bulan, hari] = tanggalKey.split('-');
+                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                            
+                            // Gunakan data dari Firebase jika ada, atau dari key
+                            const tanggal = item.tanggal || tanggalFormatted;
+                            const jam = item.jam !== undefined ? 
+                                (typeof item.jam === 'number' ? item.jam.toString().padStart(2, '0') : item.jam) : 
+                                jamKey.padStart(2, '0');
+                            
+                            html += `<tr>
+                                <td>${tanggal}</td>
+                                <td>${jam}:00</td>
+                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
+                                <td>${formatCurrency(item.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per jam</td></tr>';
+                }
+            });
+
+            // ===== LOAD DAILY HISTORY (PATH TIDAK DIUBAH) =====
+            const dailyRef = database.ref('monitoring/monitoring/history_daily'); // PATH TETAP SEPERTI ASLINYA
+            dailyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('daily-history-table');
+                
+                if (data) {
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
+                    
+                    // SORTING berdasarkan key (YYYY-MM-DD)
+                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
+                        let html = '';
+                        top50.forEach(item => {
+                            // Konversi key ke format tanggal
+                            const [tahun, bulan, hari] = item.key.split('-');
+                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                            
+                            html += `<tr>
+                                <td>${item.tanggal || tanggalFormatted}</td>
+                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(item.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data per hari</td></tr>';
+                }
+            });
+
+            // ===== LOAD MONTHLY HISTORY (PATH TIDAK DIUBAH) =====
+            const monthlyRef = database.ref('monitoring/monitoring/history_monthly'); // PATH TETAP SEPERTI ASLINYA
+            monthlyRef.limitToLast(50).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tbody = document.getElementById('monthly-history-table');
+                
+                if (data) {
+                    // Konversi object ke array
+                    const historyArray = Object.entries(data).map(([key, value]) => ({
+                        key: key,
+                        ...value
+                    }));
+                    
+                    // SORTING berdasarkan key (YYYY-MM)
+                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
+                    
+                    // Ambil 50 data teratas
+                    const top50 = historyArray.slice(0, 50);
+                    
+                    if (top50.length > 0) {
+                        let html = '';
+                        top50.forEach(item => {
+                            // Ekstrak tahun dan bulan dari key
+                            const [tahun, bulan] = item.key.split('-');
+                            
+                            // Nama bulan dalam Bahasa Indonesia
+                            const namaBulan = getNamaBulan(parseInt(bulan));
+                            
+                            html += `<tr>
+                                <td>${item.nama_bulan || namaBulan}</td>
+                                <td>${item.tahun || tahun}</td>
+                                <td>${formatNumber(item.total_energi, 3)} kWh</td>
+                                <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
+                                <td>${formatCurrency(item.total_biaya)}</td>
+                            </tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data per bulan</td></tr>';
                 }
             });
 
