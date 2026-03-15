@@ -1157,26 +1157,21 @@
                 return bulanArray[bulan - 1] || 'Unknown';
             }
 
-            // ===== PENAMBAHAN: RESET CHART OTOMATIS =====
-            // Variabel untuk menyimpan waktu terakhir reset
+            // ===== RESET CHART OTOMATIS =====
             let lastHourReset = new Date().getHours();
             let lastDayReset = new Date().getDate();
             let lastMonthReset = new Date().getMonth();
 
-            // Fungsi untuk mereset grafik power
             function resetPowerChart(reason) {
                 console.log(`Resetting power chart: ${reason}`);
                 
-                // Simpan data terakhir untuk referensi
                 const lastDataPoint = powerChart.data.datasets[0].data.length > 0 
                     ? powerChart.data.datasets[0].data[powerChart.data.datasets[0].data.length - 1] 
                     : 0;
                 
-                // Reset chart data
                 powerChart.data.labels = [];
                 powerChart.data.datasets[0].data = [];
                 
-                // Tambahkan pesan reset sebagai label pertama
                 const now = new Date();
                 const resetTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 powerChart.data.labels.push(`Reset ${reason} ${resetTime}`);
@@ -1185,36 +1180,31 @@
                 powerChart.update();
             }
 
-            // Fungsi untuk cek dan lakukan reset berdasarkan waktu
             function checkAndResetCharts() {
                 const now = new Date();
                 const currentHour = now.getHours();
                 const currentDay = now.getDate();
                 const currentMonth = now.getMonth();
                 
-                // Reset setiap jam (ketika jam berubah)
                 if (currentHour !== lastHourReset) {
                     resetPowerChart('Per Jam');
                     lastHourReset = currentHour;
                 }
                 
-                // Reset setiap hari (ketika tanggal berubah)
                 if (currentDay !== lastDayReset) {
                     resetPowerChart('Per Hari');
                     lastDayReset = currentDay;
                 }
                 
-                // Reset setiap bulan (ketika bulan berubah)
                 if (currentMonth !== lastMonthReset) {
                     resetPowerChart('Per Bulan');
                     lastMonthReset = currentMonth;
                 }
             }
 
-            // Jalankan pengecekan reset setiap detik
             setInterval(checkAndResetCharts, 1000);
 
-            // ===== PERBAIKAN: LISTENER LIVE DATA (TAMBAHKAN Math.abs) =====
+            // ===== LISTENER LIVE DATA (PATH SESUAI STRUKTUR) =====
             const liveRef = database.ref('monitoring/live');
             liveRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -1229,18 +1219,15 @@
                     document.getElementById('energy_used').textContent = formatNumber(data.energy_used, 2);
                     document.getElementById('update_time').textContent = data.time || '-';
                     
-                    // Update biaya - pastikan nilai positif dengan Math.abs
                     document.getElementById('biaya_per_jam').textContent = formatCurrency(Math.abs(data.biaya_per_jam || 0));
                     document.getElementById('biaya_per_hari').textContent = formatCurrency(Math.abs(data.biaya_per_hari || 0));
                     document.getElementById('biaya_per_bulan').textContent = formatCurrency(Math.abs(data.biaya_per_bulan || 0));
                     document.getElementById('biaya_total').textContent = formatCurrency(Math.abs(data.biaya_total || 0));
 
-                    // Hapus class negative
                     document.getElementById('biaya_total').classList.remove('negative');
 
                     const timeLabel = data.time ? data.time.split(' ')[1] : new Date().toLocaleTimeString();
                     
-                    // Tambahkan data ke chart
                     if (data.power !== undefined && data.power !== null) {
                         if (powerChart.data.labels.length > 20) {
                             powerChart.data.labels.shift();
@@ -1268,12 +1255,12 @@
                 const pumpStatus = document.getElementById('pump-status');
                 const toggleBtn = document.getElementById('btn-toggle-pump');
                 
-                if (status === true) {
+                if (status === true || status === "ON" || status === "on") {
                     pumpStatus.className = 'pump-status on';
                     pumpStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>AKTIF';
                     toggleBtn.className = 'btn-pump on';
                     toggleBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Matikan Pompa';
-                } else if (status === false) {
+                } else {
                     pumpStatus.className = 'pump-status off';
                     pumpStatus.innerHTML = '<i class="fas fa-times-circle me-2"></i>NONAKTIF';
                     toggleBtn.className = 'btn-pump off';
@@ -1281,20 +1268,22 @@
                 }
             });
 
-            // ===== LOAD REAL-TIME HISTORY =====
-            const historyRef = database.ref('monitoring/history');
+            // ===== LOAD HISTORY DARI /history (PATH SESUAI STRUKTUR) =====
+            const historyRef = database.ref('history');
             historyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('realtime-history-table');
                 
                 if (data) {
                     const historyArray = Object.entries(data)
-                        .filter(([key]) => key !== 'live' && key.length > 0)
                         .map(([key, value]) => ({
                             key: key,
                             ...value
                         }))
                         .sort((a, b) => {
+                            if (a.timestamp && b.timestamp) {
+                                return b.timestamp - a.timestamp;
+                            }
                             if (a.time && b.time) {
                                 return b.time.localeCompare(a.time);
                             }
@@ -1324,48 +1313,51 @@
                 }
             });
 
-            // ===== LOAD HOURLY HISTORY (PATH TIDAK DIUBAH) =====
-            const hourlyRef = database.ref('monitoring/monitoring/history_hourly'); // PATH TETAP SEPERTI ASLINYA
+            // ===== LOAD HOURLY HISTORY DARI /history_hourly =====
+            const hourlyRef = database.ref('history_hourly');
             hourlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('hourly-history-table');
                 
                 if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
+                    const historyArray = Object.entries(data)
+                        .map(([key, value]) => ({
+                            key: key,
+                            ...value
+                        }))
+                        .sort((a, b) => {
+                            if (a.timestamp && b.timestamp) {
+                                return b.timestamp - a.timestamp;
+                            }
+                            return b.key.localeCompare(a.key);
+                        })
+                        .slice(0, 50);
                     
-                    // SORTING berdasarkan key (YYYY-MM-DD_HH)
-                    historyArray.sort((a, b) => {
-                        return b.key.localeCompare(a.key); // Descending
-                    });
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
+                    if (historyArray.length > 0) {
                         let html = '';
-                        top50.forEach(item => {
-                            // Ekstrak tanggal dan jam dari key
-                            const keyParts = item.key.split('_');
-                            const tanggalKey = keyParts[0]; // Format: YYYY-MM-DD
-                            const jamKey = keyParts[1] || '00';
+                        historyArray.forEach(item => {
+                            // Ekstrak tanggal dan jam dari key jika tidak ada
+                            let tanggal = item.tanggal || '';
+                            let jam = item.jam !== undefined ? item.jam : '';
                             
-                            // Konversi tanggal ke format DD-MM-YYYY
-                            const [tahun, bulan, hari] = tanggalKey.split('-');
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
-                            
-                            // Gunakan data dari Firebase jika ada, atau dari key
-                            const tanggal = item.tanggal || tanggalFormatted;
-                            const jam = item.jam !== undefined ? 
-                                (typeof item.jam === 'number' ? item.jam.toString().padStart(2, '0') : item.jam) : 
-                                jamKey.padStart(2, '0');
+                            // Jika tidak ada, coba ekstrak dari key
+                            if (!tanggal || jam === '') {
+                                const keyParts = item.key.split('_');
+                                if (keyParts.length >= 2) {
+                                    const datePart = keyParts[0]; // YYYY-MM-DD
+                                    if (datePart) {
+                                        const [tahun, bulan, hari] = datePart.split('-');
+                                        if (tahun && bulan && hari) {
+                                            tanggal = `${hari}-${bulan}-${tahun}`;
+                                        }
+                                    }
+                                    jam = keyParts[1] ? keyParts[1].padStart(2, '0') : '00';
+                                }
+                            }
                             
                             html += `<tr>
-                                <td>${tanggal}</td>
-                                <td>${jam}:00</td>
+                                <td>${tanggal || '-'}</td>
+                                <td>${jam !== '' ? jam + ':00' : '-'}</td>
                                 <td>${formatNumber(item.total_energi, 3)} kWh</td>
                                 <td>${formatNumber(item.rata_rata_daya, 1)} W</td>
                                 <td>${formatCurrency(item.total_biaya)}</td>
@@ -1380,34 +1372,41 @@
                 }
             });
 
-            // ===== LOAD DAILY HISTORY (PATH TIDAK DIUBAH) =====
-            const dailyRef = database.ref('monitoring/monitoring/history_daily'); // PATH TETAP SEPERTI ASLINYA
+            // ===== LOAD DAILY HISTORY DARI /history_daily =====
+            const dailyRef = database.ref('history_daily');
             dailyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('daily-history-table');
                 
                 if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
+                    const historyArray = Object.entries(data)
+                        .map(([key, value]) => ({
+                            key: key,
+                            ...value
+                        }))
+                        .sort((a, b) => {
+                            if (a.timestamp && b.timestamp) {
+                                return b.timestamp - a.timestamp;
+                            }
+                            return b.key.localeCompare(a.key);
+                        })
+                        .slice(0, 50);
                     
-                    // SORTING berdasarkan key (YYYY-MM-DD)
-                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
+                    if (historyArray.length > 0) {
                         let html = '';
-                        top50.forEach(item => {
-                            // Konversi key ke format tanggal
-                            const [tahun, bulan, hari] = item.key.split('-');
-                            const tanggalFormatted = `${hari}-${bulan}-${tahun}`;
+                        historyArray.forEach(item => {
+                            // Gunakan tanggal dari data atau format dari key
+                            let tanggal = item.tanggal || '';
+                            
+                            if (!tanggal && item.key) {
+                                const [tahun, bulan, hari] = item.key.split('-');
+                                if (tahun && bulan && hari) {
+                                    tanggal = `${hari}-${bulan}-${tahun}`;
+                                }
+                            }
                             
                             html += `<tr>
-                                <td>${item.tanggal || tanggalFormatted}</td>
+                                <td>${tanggal || '-'}</td>
                                 <td>${formatNumber(item.total_energi, 3)} kWh</td>
                                 <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
                                 <td>${formatCurrency(item.total_biaya)}</td>
@@ -1422,37 +1421,48 @@
                 }
             });
 
-            // ===== LOAD MONTHLY HISTORY (PATH TIDAK DIUBAH) =====
-            const monthlyRef = database.ref('monitoring/monitoring/history_monthly'); // PATH TETAP SEPERTI ASLINYA
+            // ===== LOAD MONTHLY HISTORY DARI /history_monthly =====
+            const monthlyRef = database.ref('history_monthly');
             monthlyRef.limitToLast(50).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('monthly-history-table');
                 
                 if (data) {
-                    // Konversi object ke array
-                    const historyArray = Object.entries(data).map(([key, value]) => ({
-                        key: key,
-                        ...value
-                    }));
+                    const historyArray = Object.entries(data)
+                        .map(([key, value]) => ({
+                            key: key,
+                            ...value
+                        }))
+                        .sort((a, b) => {
+                            if (a.timestamp && b.timestamp) {
+                                return b.timestamp - a.timestamp;
+                            }
+                            return b.key.localeCompare(a.key);
+                        })
+                        .slice(0, 50);
                     
-                    // SORTING berdasarkan key (YYYY-MM)
-                    historyArray.sort((a, b) => b.key.localeCompare(a.key));
-                    
-                    // Ambil 50 data teratas
-                    const top50 = historyArray.slice(0, 50);
-                    
-                    if (top50.length > 0) {
+                    if (historyArray.length > 0) {
                         let html = '';
-                        top50.forEach(item => {
-                            // Ekstrak tahun dan bulan dari key
-                            const [tahun, bulan] = item.key.split('-');
+                        historyArray.forEach(item => {
+                            // Ambil bulan dan tahun dari data atau key
+                            let bulan = item.bulan || '';
+                            let tahun = item.tahun || '';
+                            let namaBulan = item.nama_bulan || '';
                             
-                            // Nama bulan dalam Bahasa Indonesia
-                            const namaBulan = getNamaBulan(parseInt(bulan));
+                            if ((!bulan || !tahun) && item.key) {
+                                const [tahunKey, bulanKey] = item.key.split('-');
+                                if (tahunKey && bulanKey) {
+                                    tahun = tahunKey;
+                                    bulan = parseInt(bulanKey);
+                                    if (!namaBulan) {
+                                        namaBulan = getNamaBulan(parseInt(bulanKey));
+                                    }
+                                }
+                            }
                             
                             html += `<tr>
-                                <td>${item.nama_bulan || namaBulan}</td>
-                                <td>${item.tahun || tahun}</td>
+                                <td>${namaBulan || (bulan ? getNamaBulan(parseInt(bulan)) : '-')}</td>
+                                <td>${tahun || '-'}</td>
                                 <td>${formatNumber(item.total_energi, 3)} kWh</td>
                                 <td>${formatNumber(item.rata_rata_harian, 1)} W</td>
                                 <td>${formatCurrency(item.total_biaya)}</td>
@@ -1519,7 +1529,17 @@
         // Toggle pump
         window.togglePump = function() {
             const pumpRef = database.ref('monitoring/control/pompa');
-            pumpRef.transaction((currentStatus) => !currentStatus);
+            pumpRef.transaction((currentStatus) => {
+                // Jika currentStatus adalah boolean
+                if (typeof currentStatus === 'boolean') {
+                    return !currentStatus;
+                }
+                // Jika currentStatus adalah string "ON"/"OFF"
+                if (currentStatus === "ON" || currentStatus === "on") {
+                    return "OFF";
+                }
+                return "ON";
+            });
         };
 
         // Update tarif
